@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>JusTax CRM</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -1133,8 +1134,48 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 </div>
 
 <script>
+// ─── SUPABASE ───
+const SUPA_URL = 'https://nbnvgvxgvvlnztxoiqxo.supabase.co';
+const SUPA_KEY = 'sb_publishable_ytcqEgQKLOMcC6cw2o_A8w_oFsmkqGk';
+const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+
 // ─── LOGIN ───
-function doLogin(){loginAs('Gustavo Rafael','GR','#2563EB','Administrador')}
+async function doLogin(){
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const btn   = document.querySelector('.login-btn');
+  if(!email || !pass) return showLoginError('Preencha e-mail e senha.');
+  btn.textContent = 'Entrando...'; btn.disabled = true;
+  const {data, error} = await supa.auth.signInWithPassword({email, password: pass});
+  btn.textContent = 'Entrar no CRM'; btn.disabled = false;
+  if(error) return showLoginError('E-mail ou senha incorretos.');
+  enterApp(data.user);
+}
+
+function showLoginError(msg){
+  let el = document.getElementById('login-error');
+  if(!el){
+    el = document.createElement('p');
+    el.id = 'login-error';
+    el.style.cssText = 'color:#DC2626;font-size:0.8rem;text-align:center;margin-top:-8px';
+    document.querySelector('.login-form').appendChild(el);
+  }
+  el.textContent = msg;
+}
+
+function enterApp(user){
+  const meta = user.user_metadata || {};
+  const nome = meta.nome || user.email.split('@')[0];
+  const iniciais = meta.iniciais || nome.slice(0,2).toUpperCase();
+  const cor = meta.cor || '#2563EB';
+  const cargo = meta.cargo || 'Administrador';
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').classList.add('show');
+  document.getElementById('user-av').textContent = iniciais;
+  document.getElementById('user-av').style.background = cor;
+  document.getElementById('user-name').textContent = nome;
+  document.getElementById('user-role').textContent = cargo;
+}
 
 function loginAs(name,initials,color,role){
   document.getElementById('login-screen').style.display='none';
@@ -1145,10 +1186,17 @@ function loginAs(name,initials,color,role){
   document.getElementById('user-role').textContent=role==='admin'?'Administrador':role==='advogado'?'Advogada':role==='estagiario'?'Estagiário':role;
 }
 
-function doLogout(){
+async function doLogout(){
+  await supa.auth.signOut();
   document.getElementById('app').classList.remove('show');
   document.getElementById('login-screen').style.display='flex';
 }
+
+// Verificar sessão existente ao carregar
+(async()=>{
+  const {data:{session}} = await supa.auth.getSession();
+  if(session) enterApp(session.user);
+})();
 
 // ─── NAV ───
 const titles={dashboard:'Dashboard',clientes:'Controle de Clientes',pipeline:'Pipeline Comercial',processos:'Processos',prazos:'Prazos & Tarefas',financeiro:'Financeiro'};

@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>JusTax CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#2563EB;--blue-dark:#1D4ED8;--blue-light:#EFF6FF;--blue-mid:#DBEAFE;
+  --sidebar:#1a1a2e;--sidebar2:#16213e;
+  --text:#0F172A;--text-muted:#64748B;--text-light:#94A3B8;
+  --white:#fff;--bg:#F1F5F9;--card:#fff;
+  --border:#E2E8F0;--radius:10px;
+  --green:#059669;--green-bg:#D1FAE5;
+  --yellow:#D97706;--yellow-bg:#FEF3C7;
+  --red:#DC2626;--red-bg:#FEE2E2;
+  --purple:#7C3AED;--purple-bg:#EDE9FE;
+  --orange:#EA580C;--orange-bg:#FFEDD5;
+  --teal:#0891B2;--teal-bg:#CFFAFE;
+  --shadow:0 1px 6px rgba(0,0,0,0.07);
+  --shadow-md:0 4px 20px rgba(0,0,0,0.1);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overflow:hidden;height:100vh}
+
+/* ─── LOGIN ─── */
+#login-screen{
+  position:fixed;inset:0;background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 60%,#2563eb 100%);
+  display:flex;align-items:center;justify-content:center;z-index:9999;
+}
+.login-box{
+  background:#fff;border-radius:20px;padding:48px 40px;width:420px;max-width:95vw;
+  box-shadow:0 24px 80px rgba(0,0,0,0.3);
+}
+.login-logo{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:32px}
+.login-logo-text{font-size:1.8rem;font-weight:800;color:#0f172a;letter-spacing:-0.5px}
+.login-title{text-align:center;font-size:1.4rem;font-weight:700;margin-bottom:6px}
+.login-sub{text-align:center;color:var(--text-muted);font-size:0.875rem;margin-bottom:32px}
+.login-form{display:flex;flex-direction:column;gap:16px}
+.input-group{display:flex;flex-direction:column;gap:6px}
+.input-group label{font-size:0.8rem;font-weight:600;color:var(--text-muted)}
+.input-group input{border:1.5px solid var(--border);border-radius:9px;padding:11px 14px;font-size:0.9rem;font-family:inherit;color:var(--text);outline:none;transition:border-color .15s}
+.input-group input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-mid)}
+.login-btn{background:var(--blue);color:#fff;border:none;border-radius:9px;padding:13px;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s;margin-top:4px}
+.login-btn:hover{background:var(--blue-dark)}
+.login-users{margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}
+.login-users p{font-size:0.75rem;color:var(--text-muted);text-align:center;margin-bottom:10px}
+.demo-users{display:flex;flex-direction:column;gap:6px}
+.demo-user{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg);border-radius:8px;cursor:pointer;transition:background .15s}
+.demo-user:hover{background:var(--blue-mid)}
+.demo-user-info{display:flex;align-items:center;gap:8px}
+.demo-user-info span{font-size:0.8rem;font-weight:500}
+.demo-user span.role{font-size:0.72rem;color:var(--text-muted)}
+
+/* ─── APP SHELL ─── */
+#app{display:none;height:100vh;overflow:hidden}
+#app.show{display:flex}
+
+/* ─── SIDEBAR ─── */
+.sidebar{width:236px;min-width:236px;background:var(--sidebar);display:flex;flex-direction:column;height:100vh;overflow-y:auto}
+.sidebar-logo{padding:18px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,0.07)}
+.sidebar-logo-text{font-size:1.05rem;font-weight:800;color:#fff;letter-spacing:-0.3px}
+.sidebar-section{padding:18px 14px 6px;font-size:0.65rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:1.4px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:7px;margin:1px 6px;cursor:pointer;color:#94A3B8;font-size:0.84rem;font-weight:500;transition:all .15s;user-select:none}
+.nav-item:hover{background:rgba(255,255,255,0.07);color:#fff}
+.nav-item.active{background:var(--blue);color:#fff}
+.nav-icon{width:16px;height:16px;flex-shrink:0}
+.nav-badge{margin-left:auto;background:rgba(255,255,255,0.15);color:#fff;font-size:0.68rem;font-weight:700;padding:1px 7px;border-radius:100px}
+.nav-item.active .nav-badge{background:rgba(255,255,255,0.25)}
+.sidebar-bottom{margin-top:auto;padding:12px;border-top:1px solid rgba(255,255,255,0.07)}
+.user-card{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;cursor:pointer}
+.user-card:hover{background:rgba(255,255,255,0.07)}
+.user-av{width:30px;height:30px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:0.7rem;flex-shrink:0}
+.user-info strong{display:block;color:#fff;font-size:0.78rem;font-weight:600}
+.user-info span{color:#475569;font-size:0.7rem}
+.logout-btn{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:7px;margin:4px 6px 0;cursor:pointer;color:#475569;font-size:0.8rem;font-weight:500;transition:all .15s}
+.logout-btn:hover{color:#EF4444;background:rgba(239,68,68,0.08)}
+
+/* ─── MAIN ─── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-title{font-size:1rem;font-weight:700}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.search-box{display:flex;align-items:center;gap:7px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 12px;width:220px}
+.search-box input{border:none;background:transparent;font-size:0.82rem;color:var(--text);outline:none;width:100%;font-family:inherit}
+.search-box input::placeholder{color:var(--text-light)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:7px;font-size:0.82rem;font-weight:600;cursor:pointer;border:none;transition:all .15s;font-family:inherit;white-space:nowrap}
+.btn-blue{background:var(--blue);color:#fff}.btn-blue:hover{background:var(--blue-dark)}
+.btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--border)}.btn-ghost:hover{background:var(--bg)}
+.btn-sm{padding:5px 11px;font-size:0.78rem}
+.btn-icon{padding:6px;border-radius:7px;background:var(--bg);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center}
+.btn-icon:hover{background:var(--blue-mid);border-color:var(--blue)}
+
+.content{flex:1;overflow-y:auto;overflow-x:auto}
+.page{display:none;height:100%}
+.page.active{display:flex;flex-direction:column}
+
+/* ─── TOOLBAR (sub topbar per page) ─── */
+.page-toolbar{padding:12px 20px;background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex-shrink:0}
+.view-toggle{display:flex;gap:2px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:2px}
+.view-btn{padding:5px 12px;border-radius:5px;border:none;background:transparent;font-size:0.78rem;font-weight:600;color:var(--text-muted);cursor:pointer;font-family:inherit;transition:all .15s;display:flex;align-items:center;gap:5px}
+.view-btn.active{background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+.divider{width:1px;height:20px;background:var(--border)}
+.filter-chip{display:flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:#fff;font-size:0.78rem;color:var(--text-muted);cursor:pointer;transition:all .15s}
+.filter-chip:hover{border-color:var(--blue);color:var(--blue)}
+.filter-chip.active{border-color:var(--blue);background:var(--blue-light);color:var(--blue)}
+
+/* ─── MONDAY-STYLE TABLE ─── */
+.board-wrap{flex:1;overflow:auto;padding:0}
+.group-block{margin-bottom:0}
+.group-header{display:flex;align-items:center;gap:8px;padding:8px 12px 8px 16px;background:var(--white);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;cursor:pointer;user-select:none}
+.group-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+.group-name{font-size:0.82rem;font-weight:700}
+.group-count{font-size:0.75rem;color:var(--text-muted);background:var(--bg);border:1px solid var(--border);padding:1px 7px;border-radius:100px}
+.group-toggle{margin-left:auto;font-size:0.75rem;color:var(--text-light)}
+
+.board-table{width:100%;border-collapse:collapse;min-width:900px}
+.board-table thead th{
+  background:#fff;padding:7px 12px;text-align:left;font-size:0.72rem;font-weight:700;
+  color:var(--text-muted);border-bottom:2px solid var(--border);border-right:1px solid var(--border);
+  white-space:nowrap;position:sticky;top:37px;z-index:9;cursor:pointer;user-select:none
+}
+.board-table thead th:hover{background:var(--bg)}
+.board-table thead th:first-child{width:32px;padding:7px 8px}
+.board-table tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+.board-table tbody tr:hover{background:#F8FAFC}
+.board-table td{padding:0;border-right:1px solid var(--border);font-size:0.83rem;vertical-align:middle}
+.board-table td:first-child{width:32px;padding:0 8px;text-align:center}
+.cell{padding:8px 12px;min-height:38px;display:flex;align-items:center;gap:6px}
+.cell-name{font-weight:600;font-size:0.84rem}
+.cell-sub{font-size:0.75rem;color:var(--text-muted)}
+.cell-expand{width:14px;height:14px;color:var(--text-light);cursor:pointer;flex-shrink:0}
+.cell-muted{color:var(--text-muted);font-size:0.8rem}
+.add-row{display:flex;align-items:center;gap:8px;padding:7px 12px 7px 48px;color:var(--text-muted);font-size:0.8rem;cursor:pointer;border-bottom:1px solid var(--border);background:#fff;transition:background .15s}
+.add-row:hover{background:var(--blue-light);color:var(--blue)}
+
+/* ─── STATUS CELL ─── */
+.status-cell{display:inline-flex;align-items:center;padding:3px 10px;border-radius:4px;font-size:0.75rem;font-weight:700;cursor:pointer;min-width:90px;justify-content:center}
+
+/* ─── KANBAN ─── */
+.kanban-wrap{display:flex;gap:12px;overflow-x:auto;padding:16px 20px;flex:1;align-items:flex-start}
+.kanban-col{min-width:250px;max-width:250px;background:var(--bg);border-radius:10px;border:1px solid var(--border);display:flex;flex-direction:column;max-height:calc(100vh - 160px)}
+.kanban-col-head{padding:10px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);background:#fff;border-radius:10px 10px 0 0;position:sticky;top:0}
+.k-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.k-title{font-size:0.82rem;font-weight:700;flex:1}
+.k-count{font-size:0.72rem;color:var(--text-muted);background:var(--bg);border:1px solid var(--border);padding:1px 7px;border-radius:100px}
+.k-total{font-size:0.72rem;color:var(--text-muted);font-weight:500}
+.kanban-cards{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:7px}
+.k-card{background:#fff;border-radius:8px;border:1px solid var(--border);padding:12px;cursor:grab;transition:box-shadow .15s,transform .15s;box-shadow:var(--shadow)}
+.k-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.k-card:active{cursor:grabbing}
+.k-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.k-card-name{font-size:0.84rem;font-weight:700;line-height:1.3}
+.k-card-detail{font-size:0.75rem;color:var(--text-muted);margin-bottom:4px}
+.k-card-value{font-size:0.88rem;font-weight:800;color:var(--blue);margin-bottom:8px}
+.k-card-foot{display:flex;justify-content:space-between;align-items:center}
+.k-card-date{font-size:0.7rem;color:var(--text-light)}
+.k-add-btn{width:100%;padding:8px;border:1.5px dashed var(--border);border-radius:7px;background:transparent;color:var(--text-muted);font-size:0.78rem;cursor:pointer;transition:all .15s;font-family:inherit;margin:4px 8px 8px;width:calc(100% - 16px)}
+.k-add-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-light)}
+
+/* ─── AVATAR ─── */
+.av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:0.65rem;flex-shrink:0}
+.av-sm{width:22px;height:22px;font-size:0.6rem}
+
+/* ─── BADGE ─── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:100px;font-size:0.72rem;font-weight:600;white-space:nowrap}
+.bdot{width:5px;height:5px;border-radius:50%}
+
+/* ─── FINANCEIRO ─── */
+.fin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:20px;flex-shrink:0}
+.fin-card{background:#fff;border-radius:10px;border:1px solid var(--border);padding:18px;box-shadow:var(--shadow)}
+.fin-label{font-size:0.78rem;color:var(--text-muted);font-weight:500;margin-bottom:8px}
+.fin-value{font-size:1.6rem;font-weight:800;letter-spacing:-0.5px}
+.fin-sub{font-size:0.73rem;color:var(--text-muted);margin-top:4px}
+.fin-body{flex:1;overflow-y:auto;padding:0 20px 20px;display:grid;grid-template-columns:1fr 360px;gap:16px;align-content:start}
+.card-block{background:#fff;border-radius:10px;border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow)}
+.card-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.card-head h3{font-size:0.87rem;font-weight:700}
+.card-rows{display:flex;flex-direction:column}
+.fin-row{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);gap:12px;font-size:0.83rem}
+.fin-row:last-child{border-bottom:none}
+.fin-row-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0}
+.fin-row-info{flex:1}
+.fin-row-info strong{display:block;font-size:0.83rem;font-weight:600}
+.fin-row-info span{font-size:0.74rem;color:var(--text-muted)}
+.fin-amount{font-weight:700;font-size:0.88rem}
+
+/* ─── DASHBOARD ─── */
+.dash-content{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
+.metrics-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.metric-card{background:#fff;border-radius:10px;border:1px solid var(--border);padding:18px;box-shadow:var(--shadow)}
+.metric-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.metric-label{font-size:0.78rem;color:var(--text-muted);font-weight:500}
+.metric-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.95rem}
+.metric-value{font-size:1.7rem;font-weight:800;letter-spacing:-1px;margin-bottom:3px}
+.metric-sub{font-size:0.73rem;color:var(--text-muted)}
+.metric-sub em{color:var(--green);font-style:normal;font-weight:600}
+.dash-row{display:grid;grid-template-columns:1fr 320px;gap:16px}
+.dash-row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+/* PRAZOS */
+.prazo-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.prazo-row:last-child{border-bottom:none}
+.prazo-info strong{display:block;font-size:0.82rem;font-weight:600}
+.prazo-info span{font-size:0.73rem;color:var(--text-muted)}
+.p-tag{padding:2px 8px;border-radius:5px;font-size:0.7rem;font-weight:700;flex-shrink:0}
+.p-urgent{background:var(--red-bg);color:var(--red)}
+.p-warn{background:var(--yellow-bg);color:var(--yellow)}
+.p-ok{background:var(--green-bg);color:var(--green)}
+
+/* ACTIVITY */
+.act-row{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.act-row:last-child{border-bottom:none}
+.act-dot{width:7px;height:7px;border-radius:50%;margin-top:6px;flex-shrink:0}
+.act-text{font-size:0.81rem;line-height:1.5}
+.act-time{font-size:0.72rem;color:var(--text-light);margin-top:1px}
+
+/* PROGRESS */
+.prog-row{margin-bottom:10px}
+.prog-label{display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.79rem}
+.prog-bar{height:5px;background:var(--border);border-radius:100px;overflow:hidden}
+.prog-fill{height:100%;border-radius:100px}
+
+/* CHART */
+.chart-wrap{display:flex;align-items:flex-end;gap:6px;height:100px;padding:0 2px}
+.chart-col{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1}
+.chart-bar{width:100%;border-radius:3px 3px 0 0;min-height:3px;transition:opacity .2s}
+.chart-bar:hover{opacity:.75}
+.chart-lbl{font-size:0.65rem;color:var(--text-muted)}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;width:580px;max-width:95vw;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.modal-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;z-index:1}
+.modal-head h2{font-size:0.95rem;font-weight:700}
+.modal-x{background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-muted);padding:4px;border-radius:6px;line-height:1}
+.modal-x:hover{background:var(--bg)}
+.modal-body{padding:22px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-full{grid-column:1/-1}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{font-size:0.77rem;font-weight:600;color:var(--text-muted)}
+.fg input,.fg select,.fg textarea{border:1.5px solid var(--border);border-radius:7px;padding:8px 11px;font-size:0.84rem;font-family:inherit;color:var(--text);outline:none;transition:border-color .15s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-mid)}
+.fg textarea{resize:vertical;min-height:70px}
+.form-section{grid-column:1/-1;font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;padding-top:4px;border-top:1px solid var(--border);margin-top:4px}
+.modal-foot{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;background:#fff;position:sticky;bottom:0}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:100px}
+
+/* TOOLTIP */
+.epoc-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:#0891B2;color:#fff;border-radius:5px;font-size:0.72rem;font-weight:700}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN ═══ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg width="52" height="56" viewBox="0 0 52 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Top-left face -->
+        <polygon points="26,2 4,26 13,26 26,11" fill="#2563EB"/>
+        <!-- Top-right face -->
+        <polygon points="26,2 48,26 39,26 26,11" fill="#2563EB"/>
+        <!-- Bottom-left face -->
+        <polygon points="26,48 4,26 13,26 26,39" fill="#2563EB"/>
+        <!-- Bottom-right face -->
+        <polygon points="26,48 48,26 39,26 26,39" fill="#2563EB"/>
+        <!-- Vertical bar -->
+        <rect x="22.5" y="13" width="7" height="26" rx="3.5" fill="#2563EB"/>
+        <!-- Base -->
+        <rect x="13" y="51" width="26" height="5" rx="2.5" fill="#2563EB"/>
+      </svg>
+      <span class="login-logo-text">JusTax CRM</span>
+    </div>
+    <h2 class="login-title">Bem-vindo de volta</h2>
+    <p class="login-sub">Faça login para acessar o painel</p>
+    <div class="login-form">
+      <div class="input-group">
+        <label>E-mail</label>
+        <input type="email" id="login-email" placeholder="seu@email.com" value="gustavo@justax.com.br"/>
+      </div>
+      <div class="input-group">
+        <label>Senha</label>
+        <input type="password" id="login-pass" placeholder="••••••••" value="123456"/>
+      </div>
+      <button type="button" class="login-btn" onclick="doLogin()">Entrar no CRM</button>
+    </div>
+    <div class="login-users">
+      <p>Acessos de demonstração</p>
+      <div class="demo-users">
+        <div class="demo-user" onclick="loginAs('Gustavo Rafael','GR','#2563EB','admin')">
+          <div class="demo-user-info">
+            <div class="av" style="background:#2563EB">GR</div>
+            <div><span>Gustavo Rafael</span><br/><span class="role">Administrador</span></div>
+          </div>
+          <span style="font-size:0.72rem;color:var(--text-muted)">→</span>
+        </div>
+        <div class="demo-user" onclick="loginAs('Ana Lima','AL','#059669','advogado')">
+          <div class="demo-user-info">
+            <div class="av" style="background:#059669">AL</div>
+            <div><span>Ana Lima</span><br/><span class="role">Advogada</span></div>
+          </div>
+          <span style="font-size:0.72rem;color:var(--text-muted)">→</span>
+        </div>
+        <div class="demo-user" onclick="loginAs('Bruno Costa','BC','#7C3AED','estagiario')">
+          <div class="demo-user-info">
+            <div class="av" style="background:#7C3AED">BC</div>
+            <div><span>Bruno Costa</span><br/><span class="role">Estagiário</span></div>
+          </div>
+          <span style="font-size:0.72rem;color:var(--text-muted)">→</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg width="30" height="32" viewBox="0 0 52 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="26,2 4,26 13,26 26,11" fill="#2563EB"/>
+        <polygon points="26,2 48,26 39,26 26,11" fill="#2563EB"/>
+        <polygon points="26,48 4,26 13,26 26,39" fill="#2563EB"/>
+        <polygon points="26,48 48,26 39,26 26,39" fill="#2563EB"/>
+        <rect x="22.5" y="13" width="7" height="26" rx="3.5" fill="#2563EB"/>
+        <rect x="13" y="51" width="26" height="5" rx="2.5" fill="#2563EB"/>
+      </svg>
+      <span class="sidebar-logo-text">JusTax CRM</span>
+    </div>
+
+    <div class="sidebar-section">Principal</div>
+    <div class="nav-item active" onclick="nav('dashboard',this)">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" onclick="nav('clientes',this)">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+      Controle de Clientes
+    </div>
+    <div class="nav-item" onclick="nav('pipeline',this)">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 8a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zm6-6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zm0 8a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+      Pipeline Comercial
+      <span class="nav-badge">17</span>
+    </div>
+    <div class="nav-item" onclick="nav('processos',this)">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/></svg>
+      Processos
+      <span class="nav-badge">31</span>
+    </div>
+    <div class="nav-item" onclick="nav('prazos',this)">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
+      Prazos & Tarefas
+      <span class="nav-badge" style="background:#EF4444">3</span>
+    </div>
+
+    <div class="sidebar-section">Gestão</div>
+    <div class="nav-item" onclick="nav('financeiro',this)">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"/></svg>
+      Financeiro
+    </div>
+    <div class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z"/><path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z"/></svg>
+      Atendimentos
+    </div>
+    <div class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11 4a1 1 0 10-2 0v4a1 1 0 102 0V7zm-3 1a1 1 0 10-2 0v3a1 1 0 102 0V8zM8 9a1 1 0 00-2 0v2a1 1 0 102 0V9z" clip-rule="evenodd"/></svg>
+      Relatórios
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="av" id="user-av" style="background:#2563EB">GR</div>
+        <div class="user-info">
+          <strong id="user-name">Gustavo Rafael</strong>
+          <span id="user-role">Administrador</span>
+        </div>
+      </div>
+      <div class="logout-btn" onclick="doLogout()">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"/></svg>
+        Sair
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <h1 class="topbar-title" id="topbar-title">Dashboard</h1>
+      <div class="topbar-right">
+        <div class="search-box">
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><circle cx="8" cy="8" r="5" stroke="#94A3B8" stroke-width="2"/><path d="M13 13l3 3" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/></svg>
+          <input type="text" placeholder="Buscar cliente, processo..."/>
+        </div>
+        <div class="btn-icon" title="E-proc: sincronizar prazos" onclick="syncEproc()">
+          <svg width="15" height="15" viewBox="0 0 20 20" fill="#2563EB"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/></svg>
+        </div>
+        <button class="btn btn-blue btn-sm" onclick="openModal()">+ Novo</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ── DASHBOARD ── -->
+      <div class="page active" id="page-dashboard">
+        <div class="dash-content">
+          <div class="metrics-row">
+            <div class="metric-card">
+              <div class="metric-top"><span class="metric-label">Leads no Pipeline</span><div class="metric-icon" style="background:#EFF6FF">🎯</div></div>
+              <div class="metric-value" style="color:var(--blue)">17</div>
+              <div class="metric-sub"><em>+4</em> esta semana</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-top"><span class="metric-label">Clientes Ativos</span><div class="metric-icon" style="background:#D1FAE5">👤</div></div>
+              <div class="metric-value" style="color:var(--green)">48</div>
+              <div class="metric-sub"><em>+2</em> este mês</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-top"><span class="metric-label">Receita Mensal</span><div class="metric-icon" style="background:#FEF3C7">💰</div></div>
+              <div class="metric-value" style="color:var(--yellow)">R$84k</div>
+              <div class="metric-sub"><em>+18%</em> vs mês anterior</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-top"><span class="metric-label">Prazos Críticos</span><div class="metric-icon" style="background:#FEE2E2">⚖️</div></div>
+              <div class="metric-value" style="color:var(--red)">3</div>
+              <div class="metric-sub" style="color:var(--red)">vencem hoje ou amanhã</div>
+            </div>
+          </div>
+
+          <div class="dash-row">
+            <!-- Left -->
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div class="card-block">
+                <div class="card-head"><h3>Fechamentos por mês (2025)</h3></div>
+                <div style="padding:16px">
+                  <div class="chart-wrap">
+                    <div class="chart-col"><div class="chart-bar" style="height:38%;background:var(--blue-mid)"></div><span class="chart-lbl">Jan</span></div>
+                    <div class="chart-col"><div class="chart-bar" style="height:52%;background:var(--blue-mid)"></div><span class="chart-lbl">Fev</span></div>
+                    <div class="chart-col"><div class="chart-bar" style="height:44%;background:var(--blue-mid)"></div><span class="chart-lbl">Mar</span></div>
+                    <div class="chart-col"><div class="chart-bar" style="height:68%;background:var(--blue-mid)"></div><span class="chart-lbl">Abr</span></div>
+                    <div class="chart-col"><div class="chart-bar" style="height:58%;background:var(--blue-mid)"></div><span class="chart-lbl">Mai</span></div>
+                    <div class="chart-col"><div class="chart-bar" style="height:80%;background:var(--blue-mid)"></div><span class="chart-lbl">Jun</span></div>
+                    <div class="chart-col"><div class="chart-bar" style="height:100%;background:var(--blue)"></div><span class="chart-lbl">Jul</span></div>
+                  </div>
+                </div>
+              </div>
+              <div class="card-block">
+                <div class="card-head"><h3>Atividades Recentes</h3></div>
+                <div style="padding:4px 16px">
+                  <div class="act-row"><div class="act-dot" style="background:var(--green)"></div><div><div class="act-text"><strong>Maria Fernanda</strong> assinou contrato — Trabalhista</div><div class="act-time">Há 20 min</div></div></div>
+                  <div class="act-row"><div class="act-dot" style="background:var(--blue)"></div><div><div class="act-text">Novo lead <strong>Carlos Eduardo</strong> via tráfego pago</div><div class="act-time">Há 1h</div></div></div>
+                  <div class="act-row"><div class="act-dot" style="background:var(--yellow)"></div><div><div class="act-text">Proposta enviada para <strong>Roberta Lima</strong> — Tributário</div><div class="act-time">Há 3h</div></div></div>
+                  <div class="act-row"><div class="act-dot" style="background:#0891B2)"></div><div><div class="act-text">E-proc sincronizou <strong>2 novos prazos</strong> automaticamente</div><div class="act-time">Há 4h · <span class="epoc-badge">E-proc</span></div></div></div>
+                  <div class="act-row"><div class="act-dot" style="background:var(--red)"></div><div><div class="act-text">⚠ Prazo: <strong>Agravo Regimental</strong> vence hoje</div><div class="act-time">STJ · Proc. 0001234</div></div></div>
+                </div>
+              </div>
+            </div>
+            <!-- Right -->
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div class="card-block">
+                <div class="card-head"><h3>⚠ Prazos Críticos</h3><span class="badge" style="background:var(--red-bg);color:var(--red)">3 urgentes</span></div>
+                <div style="padding:4px 16px">
+                  <div class="prazo-row"><div class="prazo-info" style="flex:1"><strong>Agravo Regimental</strong><span>João Alves · STJ</span></div><span class="p-tag p-urgent">HOJE</span></div>
+                  <div class="prazo-row"><div class="prazo-info" style="flex:1"><strong>Contestação Trabalhista</strong><span>Ana Costa · TRT-SP</span></div><span class="p-tag p-urgent">1 dia</span></div>
+                  <div class="prazo-row"><div class="prazo-info" style="flex:1"><strong>Recurso Inominado</strong><span>Pedro Santos · TJSP</span></div><span class="p-tag p-warn">3 dias</span></div>
+                  <div class="prazo-row"><div class="prazo-info" style="flex:1"><strong>Audiência de Conciliação</strong><span>Maria Lima · Vara do Trabalho</span></div><span class="p-tag p-ok">7 dias</span></div>
+                </div>
+              </div>
+              <div class="card-block">
+                <div class="card-head"><h3>Clientes por Área</h3></div>
+                <div style="padding:12px 16px">
+                  <div class="prog-row"><div class="prog-label"><span>Trabalhista</span><span style="color:var(--text-muted)">38%</span></div><div class="prog-bar"><div class="prog-fill" style="width:38%;background:var(--blue)"></div></div></div>
+                  <div class="prog-row"><div class="prog-label"><span>Tributário</span><span style="color:var(--text-muted)">24%</span></div><div class="prog-bar"><div class="prog-fill" style="width:24%;background:var(--purple)"></div></div></div>
+                  <div class="prog-row"><div class="prog-label"><span>Família</span><span style="color:var(--text-muted)">18%</span></div><div class="prog-bar"><div class="prog-fill" style="width:18%;background:var(--green)"></div></div></div>
+                  <div class="prog-row"><div class="prog-label"><span>Empresarial</span><span style="color:var(--text-muted)">12%</span></div><div class="prog-bar"><div class="prog-fill" style="width:12%;background:var(--yellow)"></div></div></div>
+                  <div class="prog-row"><div class="prog-label"><span>Cível</span><span style="color:var(--text-muted)">8%</span></div><div class="prog-bar"><div class="prog-fill" style="width:8%;background:var(--orange)"></div></div></div>
+                </div>
+              </div>
+              <div class="card-block">
+                <div class="card-head"><h3>E-proc Status</h3><span class="epoc-badge">Conectado</span></div>
+                <div style="padding:12px 16px;font-size:0.82rem;color:var(--text-muted);display:flex;flex-direction:column;gap:6px">
+                  <div style="display:flex;justify-content:space-between"><span>Última sincronização</span><strong style="color:var(--text)">Hoje 14:32</strong></div>
+                  <div style="display:flex;justify-content:space-between"><span>Prazos sincronizados</span><strong style="color:var(--text)">31 processos</strong></div>
+                  <div style="display:flex;justify-content:space-between"><span>Próxima sincronização</span><strong style="color:var(--text)">Em 2h</strong></div>
+                  <button class="btn btn-ghost btn-sm" style="margin-top:4px" onclick="syncEproc()">🔄 Sincronizar agora</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CLIENTES ── -->
+      <div class="page" id="page-clientes">
+        <div class="page-toolbar">
+          <div class="view-toggle">
+            <button class="view-btn active">📋 Quadro</button>
+            <button class="view-btn">📊 Tabela</button>
+            <button class="view-btn">📅 Calendário</button>
+          </div>
+          <div class="divider"></div>
+          <div class="filter-chip active">Filtro <strong>1</strong></div>
+          <div class="filter-chip">👤 Pessoa</div>
+          <div class="filter-chip">↕ Ordenar</div>
+          <div class="filter-chip">👁 Ocultar colunas</div>
+          <div class="filter-chip">⊞ Agrupar</div>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" onclick="showAddColModal()">+ Adicionar coluna</button>
+            <button class="btn btn-blue btn-sm" onclick="openModal('cliente')">+ Criar elemento</button>
+          </div>
+        </div>
+
+        <!-- Modal adicionar coluna -->
+        <div id="add-col-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center" onclick="if(event.target.id==='add-col-overlay')hideAddColModal()">
+          <div style="background:#fff;border-radius:14px;width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.2);overflow:hidden">
+            <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+              <h3 style="font-size:0.95rem;font-weight:700">Nova Coluna</h3>
+              <button onclick="hideAddColModal()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-muted)">✕</button>
+            </div>
+            <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
+              <div class="fg">
+                <label>Título da coluna *</label>
+                <input id="new-col-title" type="text" placeholder="Ex: Telefone, Status OAB, Observações..." onkeydown="if(event.key==='Enter')addColumn()"/>
+              </div>
+              <div class="fg">
+                <label>Tipo de coluna</label>
+                <select id="new-col-type">
+                  <option value="text">📝 Texto</option>
+                  <option value="status">🏷 Status</option>
+                  <option value="date">📅 Data</option>
+                  <option value="number">🔢 Número</option>
+                  <option value="person">👤 Pessoa</option>
+                </select>
+              </div>
+            </div>
+            <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px">
+              <button class="btn btn-ghost" onclick="hideAddColModal()">Cancelar</button>
+              <button class="btn btn-blue" onclick="addColumn()">Adicionar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="board-wrap">
+          <table class="board-table" id="clientes-table">
+            <thead>
+              <tr id="clientes-thead-row">
+                <th><input type="checkbox" style="accent-color:var(--blue)"/></th>
+                <th>Elemento</th>
+                <th>Nome Cliente</th>
+                <th>Área do Direito</th>
+                <th>Data Entrada</th>
+                <th>Status / Planilha</th>
+                <th>Responsável</th>
+                <th>Honorário</th>
+                <th>Valor Contrato</th>
+                <th>Origem</th>
+                <th>Cidade</th>
+                <th style="width:36px;cursor:pointer;text-align:center;color:var(--text-light)" onclick="showAddColModal()" title="Adicionar coluna">+</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- GROUP 1 -->
+              <tr><td colspan="11" style="padding:0;border:none">
+                <div class="group-header">
+                  <div class="group-dot" style="background:#059669"></div>
+                  <span class="group-name">CLIENTES ATIVOS — FIXO</span>
+                  <span class="group-count">4</span>
+                  <span class="group-toggle">▾</span>
+                </div>
+              </td></tr>
+              <tr>
+                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
+                <td><div class="cell"><span class="cell-expand">▶</span><span class="cell-name">Construtora Edifica</span></div></td>
+                <td><div class="cell"><div class="av" style="background:#2563EB">JL</div>Jaílson Leal</div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--orange-bg);color:var(--orange)">● Empresarial</span></div></td>
+                <td><div class="cell cell-muted">set 27, 2024</div></td>
+                <td><div class="cell"><span class="status-cell" style="background:#D1FAE5;color:#065F46">✓ Ativo</span></div></td>
+                <td><div class="cell"><div class="av av-sm" style="background:#2563EB">GR</div><span style="font-size:0.78rem">Gustavo</span></div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--bg);color:var(--text-muted);border:1px solid var(--border)">Mensalidade</span></div></td>
+                <td><div class="cell" style="font-weight:700;color:var(--green)">R$ 3.500/mês</div></td>
+                <td><div class="cell cell-muted">Indicação</div></td>
+                <td><div class="cell cell-muted">Araranguá</div></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
+                <td><div class="cell"><span class="cell-expand">▶</span><span class="cell-name">Remax Exclusive</span></div></td>
+                <td><div class="cell"><div class="av" style="background:#7C3AED">GP</div>Gabriel Parajar</div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--orange-bg);color:var(--orange)">● Empresarial</span></div></td>
+                <td><div class="cell cell-muted">out 2, 2024</div></td>
+                <td><div class="cell"><span class="status-cell" style="background:#FEF3C7;color:#92400E">⚡ ACELERA</span></div></td>
+                <td><div class="cell"><div class="av av-sm" style="background:#7C3AED">BC</div><span style="font-size:0.78rem">Bruno</span></div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--bg);color:var(--text-muted);border:1px solid var(--border)">Fixo</span></div></td>
+                <td><div class="cell" style="font-weight:700;color:var(--green)">R$ 8.000</div></td>
+                <td><div class="cell cell-muted">Tráfego Pago</div></td>
+                <td><div class="cell cell-muted">Vitória</div></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
+                <td><div class="cell"><span class="cell-expand">▶</span><span class="cell-name">Conecta Consultoria</span></div></td>
+                <td><div class="cell"><div class="av" style="background:#059669">AN</div>Ana</div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--purple-bg);color:var(--purple)">● Tributário</span></div></td>
+                <td><div class="cell cell-muted">out 28, 2024</div></td>
+                <td><div class="cell"><span class="status-cell" style="background:#D1FAE5;color:#065F46">✓ Ativo</span></div></td>
+                <td><div class="cell"><div class="av av-sm" style="background:#059669">AL</div><span style="font-size:0.78rem">Ana Lima</span></div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--bg);color:var(--text-muted);border:1px solid var(--border)">Êxito 20%</span></div></td>
+                <td><div class="cell" style="font-weight:700;color:var(--green)">R$ 42.000</div></td>
+                <td><div class="cell cell-muted">Indicação</div></td>
+                <td><div class="cell cell-muted">Indaiatuba</div></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
+                <td><div class="cell"><span class="cell-expand">▶</span><span class="cell-name">G Prime Imóveis</span></div></td>
+                <td><div class="cell"><div class="av" style="background:#EA580C">MK</div>Márcio</div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--orange-bg);color:var(--orange)">● Empresarial</span></div></td>
+                <td><div class="cell cell-muted">nov 21, 2024</div></td>
+                <td><div class="cell"><span class="status-cell" style="background:#D1FAE5;color:#065F46">✓ Ativo</span></div></td>
+                <td><div class="cell"><div class="av av-sm" style="background:#2563EB">GR</div><span style="font-size:0.78rem">Gustavo</span></div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--bg);color:var(--text-muted);border:1px solid var(--border)">Mensalidade</span></div></td>
+                <td><div class="cell" style="font-weight:700;color:var(--green)">R$ 2.200/mês</div></td>
+                <td><div class="cell cell-muted">Social Media</div></td>
+                <td><div class="cell cell-muted">Balneário</div></td>
+              </tr>
+              <tr><td colspan="11" style="padding:0">
+                <div class="add-row" onclick="openModal('cliente')">+ Adicionar elemento</div>
+              </td></tr>
+
+              <!-- GROUP 2 -->
+              <tr><td colspan="11" style="padding:0;border:none">
+                <div class="group-header">
+                  <div class="group-dot" style="background:#2563EB"></div>
+                  <span class="group-name">CLIENTES ATIVOS — ÊXITO</span>
+                  <span class="group-count">3</span>
+                  <span class="group-toggle">▾</span>
+                </div>
+              </td></tr>
+              <tr>
+                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
+                <td><div class="cell"><span class="cell-expand">▶</span><span class="cell-name">Maria Fernanda</span></div></td>
+                <td><div class="cell"><div class="av" style="background:#2563EB">MF</div>Maria Fernanda</div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--green-bg);color:var(--green)">● Trabalhista</span></div></td>
+                <td><div class="cell cell-muted">jan 7, 2025</div></td>
+                <td><div class="cell"><span class="status-cell" style="background:#DBEAFE;color:#1D4ED8">⚡ Em andamento</span></div></td>
+                <td><div class="cell"><div class="av av-sm" style="background:#2563EB">GR</div><span style="font-size:0.78rem">Gustavo</span></div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--bg);color:var(--text-muted);border:1px solid var(--border)">Êxito 30%</span></div></td>
+                <td><div class="cell" style="font-weight:700;color:var(--blue)">R$ 18.000 est.</div></td>
+                <td><div class="cell cell-muted">Indicação</div></td>
+                <td><div class="cell cell-muted">São Paulo</div></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
+                <td><div class="cell"><span class="cell-expand">▶</span><span class="cell-name">João Pedro Alves</span></div></td>
+                <td><div class="cell"><div class="av" style="background:#7C3AED">JP</div>João Pedro</div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--purple-bg);color:var(--purple)">● Tributário</span></div></td>
+                <td><div class="cell cell-muted">jan 23, 2025</div></td>
+                <td><div class="cell"><span class="status-cell" style="background:#DBEAFE;color:#1D4ED8">⚡ Em andamento</span></div></td>
+                <td><div class="cell"><div class="av av-sm" style="background:#2563EB">GR</div><span style="font-size:0.78rem">Gustavo</span></div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--bg);color:var(--text-muted);border:1px solid var(--border)">Êxito 20%</span></div></td>
+                <td><div class="cell" style="font-weight:700;color:var(--blue)">R$ 45.000 est.</div></td>
+                <td><div class="cell cell-muted">Tráfego Pago</div></td>
+                <td><div class="cell cell-muted">Florianópolis</div></td>
+              </tr>
+              <tr><td colspan="11" style="padding:0">
+                <div class="add-row" onclick="openModal('cliente')">+ Adicionar elemento</div>
+              </td></tr>
+
+              <!-- GROUP 3 -->
+              <tr><td colspan="11" style="padding:0;border:none">
+                <div class="group-header">
+                  <div class="group-dot" style="background:#94A3B8"></div>
+                  <span class="group-name">ENCERRADOS</span>
+                  <span class="group-count">2</span>
+                  <span class="group-toggle">▸</span>
+                </div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── PIPELINE KANBAN ── -->
+      <div class="page" id="page-pipeline">
+        <div class="page-toolbar">
+          <div class="view-toggle">
+            <button class="view-btn active">🗂 Pipeline</button>
+            <button class="view-btn">📋 Lista</button>
+          </div>
+          <div class="divider"></div>
+          <select style="border:1px solid var(--border);background:#fff;border-radius:6px;padding:5px 10px;font-size:0.78rem;font-family:inherit;cursor:pointer"><option>Todas as áreas</option><option>Trabalhista</option><option>Tributário</option><option>Família</option><option>Empresarial</option></select>
+          <select style="border:1px solid var(--border);background:#fff;border-radius:6px;padding:5px 10px;font-size:0.78rem;font-family:inherit;cursor:pointer"><option>Todos responsáveis</option><option>Gustavo</option><option>Ana Lima</option><option>Bruno</option></select>
+          <div style="margin-left:auto"><button class="btn btn-blue btn-sm" onclick="openModal('lead')">+ Novo Lead</button></div>
+        </div>
+        <div class="kanban-wrap">
+          <!-- Frio -->
+          <div class="kanban-col">
+            <div class="kanban-col-head"><div class="k-dot" style="background:#94A3B8"></div><span class="k-title">Frio</span><span class="k-count">3</span></div>
+            <div class="kanban-cards" id="k-frio">
+              <div class="k-card" draggable="true">
+                <div class="k-card-top"><div class="k-card-name">Fran Indicação Day</div><span style="font-size:.65rem;background:#FEE2E2;color:var(--red);padding:2px 7px;border-radius:100px;font-weight:700">Frio</span></div>
+                <div class="k-card-detail">📞 43 98851-7516</div>
+                <div class="k-card-detail">Direito de Família</div>
+                <div class="k-card-foot"><span class="k-card-date">27/06/2025</span><div class="av av-sm" style="background:#2563EB">GR</div></div>
+              </div>
+              <div class="k-card" draggable="true">
+                <div class="k-card-top"><div class="k-card-name">Jean — 27/06 Médio</div><span style="font-size:.65rem;background:#FEE2E2;color:var(--red);padding:2px 7px;border-radius:100px;font-weight:700">Frio</span></div>
+                <div class="k-card-detail">📞 43 98832-0274</div>
+                <div class="k-card-detail">Trabalhista</div>
+                <div class="k-card-foot"><span class="k-card-date">Médio porte</span><div class="av av-sm" style="background:#059669">AL</div></div>
+              </div>
+              <div class="k-card" draggable="true">
+                <div class="k-card-top"><div class="k-card-name">Elisangela — 04/09</div><span style="font-size:.65rem;background:#FEE2E2;color:var(--red);padding:2px 7px;border-radius:100px;font-weight:700">Frio</span></div>
+                <div class="k-card-detail">📞 43 98427-2804</div>
+                <div class="k-card-detail">3 QUARTOS — Imobiliário</div>
+                <div class="k-card-foot"><span class="k-card-date">04/09/2025</span><div class="av av-sm" style="background:#2563EB">GR</div></div>
+              </div>
+            </div>
+            <button class="k-add-btn" onclick="openModal('lead')">+ Adicionar lead</button>
+          </div>
+
+          <!-- Em Atendimento -->
+          <div class="kanban-col">
+            <div class="kanban-col-head"><div class="k-dot" style="background:#2563EB"></div><span class="k-title">Em Atendimento</span><span class="k-count">4</span></div>
+            <div class="kanban-cards" id="k-atendimento">
+              <div class="k-card" draggable="true">
+                <div class="k-card-top"><div class="k-card-name">Francieli Ribeiro</div><span style="font-size:.65rem;background:#DBEAFE;color:#1D4ED8;padding:2px 7px;border-radius:100px;font-weight:700">Em Atendimento</span></div>
+                <div class="k-card-detail">📞 4398851-7516</div>
+                <div class="k-card-detail">AGUARDANDO AGENDAR VISITA</div>
+                <div class="k-card-foot"><span class="k-card-date">Ind. Dayane</span><div class="av av-sm" style="background:#059669">AL</div></div>
+              </div>
+              <div class="k-card" draggable="true">
+                <div class="k-card-top"><div class="k-card-name">Luana — 16/10</div><span style="font-size:.65rem;background:#DBEAFE;color:#1D4ED8;padding:2px 7px;border-radius:100px;font-weight:700">Em Atendimento</span></div>
+                <div class="k-card-detail">📞 43 99971-5043</div>
+                <div class="k-card-detail">Linz — Trabalhista</div>
+                <div class="k-card-foot"><span class="k-card-date">16/10/2025</span><div class="av av-sm" style="background:#059669">AL</div></div>
+              </div>
+              <div class="k-card" draggable="true">
+                <div class="k-card-top"><div class="k-card-name">Rian — 17/10</div><span style="font-size:.65rem;background:#DBEAFE;color:#1D4ED8;padding:2px 7px;border-radius:100px;font-weight:700">Em Atendimento</span></div>
+                <div class="k-card-detail">📞 43 99846-3913</div>
+                <div class="k-card-detail">Linz — Tributário</div>
+                <div class="k-card-foot"><span class="k-card-date">17/10/2025</span><div class="av av-sm" style="background:#2563EB">GR</div></div>
+              </div>
+            </div>
+            <button class="k-add-btn" onclick="openModal('lead')">+ Adicionar lead</button>
+          </div>
+
+          <!-- Visita Agendada -->
+          <div class="kanban-col">
+            <div class="kanban-col-head"><div class="k-dot" style="background:#EA580C"></div><span class="k-title">Visita Agendada</span><span class="k-count">3</span></div>
+            <div class="kanban-cards" id="k-visita">
+              <div class="k-card" draggable="true">
+                <div class="k-card-top"><div class="k-card-name">Leonardo</div><span style="font-size:.65rem;background:#FFEDD5;color:var(--orange);padding:2px 7px;border-radius:100px;font-weight:700">Visita Agendada</span></div>
+                <div class="k-card-detail">Ind. Wagner e Barbara</div>
+                <div class="k-card-detail">📞 43 98825-2407</div>
+                <div class="k-card-detail" style="color:var(--yellow);font-weight:600">AGUARDANDO DOCUMENTAÇÃO</div>
+                <div class="k-card-foot"><span class="k-card-date">Empresarial</span><div class="av av-sm" style="background:#2563EB">GR</div></div>
+              </div>
+              <div class="k-card" draggable="true">
+                <div class="k-card-top"><div class="k-card-name">Bruna e João Victor</div><span style="font-size:.65rem;background:#FFEDD5;color:var(--orange);padding:2px 7px;border-radius:100px;font-weight:700">Visita Agendada</span></div>
+                <div class="k-card-detail">Indicação Barbara</div>
+                <div class="k-card-detail">📞 43 996166101</div>
+                <div class="k-card-foot"><span class="k-card-date">17/10/2025</span><div class="av av-sm" style="background:#059669">AL</div></div>
+              </div>
+            </div>
+            <button class="k-add-btn" onclick="openModal('lead')">+ Adicionar lead</button>
+          </div>
+
+          <!-- Proposta Enviada -->
+          <div class="kanban-col">
+            <div class="kanban-col-head"><div class="k-dot" style="background:#7C3AED"></div><span class="k-title">Proposta Enviada</span><span class="k-count">3</span><span class="k-total">R$ 68k</span></div>
+            <div class="kanban-cards" id="k-proposta">
+              <div class="k-card" draggable="true">
+                <div class="k-card-top"><div class="k-card-name">Roberta Lima</div><span style="font-size:.65rem;background:var(--purple-bg);color:var(--purple);padding:2px 7px;border-radius:100px;font-weight:700">Proposta</span></div>
+                <div class="k-card-detail">Tributário</div>
+                <div class="k-card-value">R$ 24.000</div>
+                <div class="k-card-foot"><span class="k-card-date">20/07/2025</span><div class="av av-sm" style="background:#2563EB">GR</div></div>
+              </div>
+              <div class="k-card" draggable="true">
+                <div class="k-card-top"><div class="k-card-name">Paula Martins</div><span style="font-size:.65rem;background:var(--purple-bg);color:var(--purple);padding:2px 7px;border-radius:100px;font-weight:700">Proposta</span></div>
+                <div class="k-card-detail">Empresarial</div>
+                <div class="k-card-value">R$ 36.000</div>
+                <div class="k-card-foot"><span class="k-card-date">18/07/2025</span><div class="av av-sm" style="background:#059669">AL</div></div>
+              </div>
+            </div>
+            <button class="k-add-btn" onclick="openModal('lead')">+ Adicionar lead</button>
+          </div>
+
+          <!-- Contrato Assinado -->
+          <div class="kanban-col">
+            <div class="kanban-col-head"><div class="k-dot" style="background:#059669"></div><span class="k-title">Contrato Assinado</span><span class="k-count">2</span><span class="k-total">R$ 63k</span></div>
+            <div class="kanban-cards" id="k-fechado">
+              <div class="k-card" draggable="true" style="border-color:#D1FAE5">
+                <div class="k-card-top"><div class="k-card-name">Maria Fernanda</div><span style="font-size:.65rem;background:var(--green-bg);color:var(--green);padding:2px 7px;border-radius:100px;font-weight:700">✓ Fechado</span></div>
+                <div class="k-card-detail">Trabalhista</div>
+                <div class="k-card-value" style="color:var(--green)">R$ 18.000</div>
+                <div class="k-card-foot"><span class="k-card-date">22/07/2025</span><div class="av av-sm" style="background:#2563EB">GR</div></div>
+              </div>
+              <div class="k-card" draggable="true" style="border-color:#D1FAE5">
+                <div class="k-card-top"><div class="k-card-name">João Pedro Alves</div><span style="font-size:.65rem;background:var(--green-bg);color:var(--green);padding:2px 7px;border-radius:100px;font-weight:700">✓ Fechado</span></div>
+                <div class="k-card-detail">Tributário</div>
+                <div class="k-card-value" style="color:var(--green)">R$ 45.000</div>
+                <div class="k-card-foot"><span class="k-card-date">15/07/2025</span><div class="av av-sm" style="background:#2563EB">GR</div></div>
+              </div>
+            </div>
+            <button class="k-add-btn">+ Adicionar</button>
+          </div>
+
+          <!-- Perdido -->
+          <div class="kanban-col">
+            <div class="kanban-col-head"><div class="k-dot" style="background:#DC2626"></div><span class="k-title">Perdido</span><span class="k-count">1</span></div>
+            <div class="kanban-cards" id="k-perdido">
+              <div class="k-card" draggable="true" style="opacity:.55">
+                <div class="k-card-top"><div class="k-card-name">Daniel Correa</div><span style="font-size:.65rem;background:var(--red-bg);color:var(--red);padding:2px 7px;border-radius:100px;font-weight:700">Perdido</span></div>
+                <div class="k-card-detail">Optou por outro escritório</div>
+                <div class="k-card-detail">Família</div>
+                <div class="k-card-foot"><span class="k-card-date">10/07/2025</span><div class="av av-sm" style="background:#2563EB">GR</div></div>
+              </div>
+            </div>
+            <button class="k-add-btn">+ Adicionar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PROCESSOS ── -->
+      <div class="page" id="page-processos">
+        <div class="page-toolbar">
+          <div class="filter-chip active">↕ Ordenar por prazo</div>
+          <div class="filter-chip">Área</div>
+          <div class="filter-chip">Tribunal</div>
+          <div class="filter-chip active"><span class="epoc-badge" style="padding:1px 7px;font-size:0.7rem">E-proc</span> Sincronizado</div>
+          <div style="margin-left:auto"><button class="btn btn-blue btn-sm" onclick="openModal('processo')">+ Novo Processo</button></div>
+        </div>
+        <div class="board-wrap">
+          <table class="board-table">
+            <thead>
+              <tr>
+                <th><input type="checkbox" style="accent-color:var(--blue)"/></th>
+                <th>Nº Processo</th>
+                <th>Cliente</th>
+                <th>Área</th>
+                <th>Tribunal</th>
+                <th>Fase</th>
+                <th>Próximo Prazo</th>
+                <th>Ação Requerida</th>
+                <th>E-proc</th>
+                <th>Responsável</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="11" style="padding:0;border:none">
+                <div class="group-header">
+                  <div class="group-dot" style="background:#DC2626"></div>
+                  <span class="group-name">PRAZOS URGENTES</span>
+                  <span class="group-count">2</span>
+                  <span class="group-toggle">▾</span>
+                </div>
+              </td></tr>
+              <tr style="background:#FFF5F5">
+                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
+                <td><div class="cell" style="font-weight:700;color:var(--blue);font-size:0.77rem">0001234-12.2025.3.00.0001</div></td>
+                <td><div class="cell"><div class="av av-sm" style="background:#2563EB">JA</div>João Alves</div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--purple-bg);color:var(--purple)">Tributário</span></div></td>
+                <td><div class="cell cell-muted">STJ</div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--blue-mid);color:#1D4ED8">Recursal</span></div></td>
+                <td><div class="cell"><span class="p-tag p-urgent">HOJE</span></div></td>
+                <td><div class="cell cell-muted" style="font-size:0.77rem">Agravo Regimental</div></td>
+                <td><div class="cell"><span class="epoc-badge" style="font-size:0.68rem">✓ Sync</span></div></td>
+                <td><div class="cell"><div class="av av-sm" style="background:#2563EB">GR</div></div></td>
+                <td><div class="cell"><span class="status-cell" style="background:#DBEAFE;color:#1D4ED8">Em andamento</span></div></td>
+              </tr>
+              <tr style="background:#FFF5F5">
+                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
+                <td><div class="cell" style="font-weight:700;color:var(--blue);font-size:0.77rem">0002345-33.2025.5.02.0001</div></td>
+                <td><div class="cell"><div class="av av-sm" style="background:#059669">AC</div>Ana Costa</div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--green-bg);color:var(--green)">Trabalhista</span></div></td>
+                <td><div class="cell cell-muted">TRT-SP</div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--yellow-bg);color:var(--yellow)">Instrução</span></div></td>
+                <td><div class="cell"><span class="p-tag p-urgent">1 dia</span></div></td>
+                <td><div class="cell cell-muted" style="font-size:0.77rem">Contestação</div></td>
+                <td><div class="cell"><span class="epoc-badge" style="font-size:0.68rem">✓ Sync</span></div></td>
+                <td><div class="cell"><div class="av av-sm" style="background:#059669">AL</div></div></td>
+                <td><div class="cell"><span class="status-cell" style="background:#DBEAFE;color:#1D4ED8">Em andamento</span></div></td>
+              </tr>
+              <tr><td colspan="11" style="padding:0;border:none">
+                <div class="group-header">
+                  <div class="group-dot" style="background:#2563EB"></div>
+                  <span class="group-name">EM ANDAMENTO</span>
+                  <span class="group-count">3</span>
+                  <span class="group-toggle">▾</span>
+                </div>
+              </td></tr>
+              <tr>
+                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
+                <td><div class="cell" style="font-weight:700;color:var(--blue);font-size:0.77rem">0003456-44.2025.8.26.0100</div></td>
+                <td><div class="cell"><div class="av av-sm" style="background:#7C3AED">AC</div>Ana Carolina</div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--blue-mid);color:#1D4ED8">Família</span></div></td>
+                <td><div class="cell cell-muted">TJSP</div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--purple-bg);color:var(--purple)">Recursal</span></div></td>
+                <td><div class="cell"><span class="p-tag p-warn">3 dias</span></div></td>
+                <td><div class="cell cell-muted" style="font-size:0.77rem">Recurso Inominado</div></td>
+                <td><div class="cell"><span class="epoc-badge" style="font-size:0.68rem">✓ Sync</span></div></td>
+                <td><div class="cell"><div class="av av-sm" style="background:#059669">AL</div></div></td>
+                <td><div class="cell"><span class="status-cell" style="background:#DBEAFE;color:#1D4ED8">Em andamento</span></div></td>
+              </tr>
+              <tr><td colspan="11" style="padding:0">
+                <div class="add-row" onclick="openModal('processo')">+ Adicionar processo</div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── PRAZOS ── -->
+      <div class="page" id="page-prazos">
+        <div class="page-toolbar">
+          <div class="filter-chip active">🔴 Urgentes (3)</div>
+          <div class="filter-chip">⚠ Esta semana</div>
+          <div class="filter-chip">📅 Este mês</div>
+          <div class="filter-chip active"><span class="epoc-badge" style="padding:1px 7px;font-size:0.7rem">E-proc</span> Auto-import</div>
+          <div style="margin-left:auto"><button class="btn btn-blue btn-sm">+ Nova Tarefa</button></div>
+        </div>
+        <div class="board-wrap">
+          <table class="board-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Tarefa / Prazo</th>
+                <th>Processo</th>
+                <th>Cliente</th>
+                <th>Tipo</th>
+                <th>Prazo</th>
+                <th>Prioridade</th>
+                <th>Origem</th>
+                <th>Responsável</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="10" style="padding:0;border:none"><div class="group-header"><div class="group-dot" style="background:#DC2626"></div><span class="group-name">HOJE</span><span class="group-count">2</span><span class="group-toggle">▾</span></div></td></tr>
+              <tr style="background:#FFF5F5">
+                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
+                <td><div class="cell cell-name">Protocolar Agravo Regimental</div></td>
+                <td><div class="cell" style="font-size:0.77rem;color:var(--blue)">0001234-12.2025</div></td>
+                <td><div class="cell"><div class="av av-sm">JA</div>João Alves</div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--red-bg);color:var(--red)">Prazo Processual</span></div></td>
+                <td><div class="cell"><span class="p-tag p-urgent">HOJE</span></div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--red-bg);color:var(--red)">🔥 Urgente</span></div></td>
+                <td><div class="cell"><span class="epoc-badge" style="font-size:0.68rem">E-proc</span></div></td>
+                <td><div class="cell"><div class="av av-sm" style="background:#2563EB">GR</div></div></td>
+                <td><div class="cell"><span class="status-cell" style="background:var(--yellow-bg);color:var(--yellow)">Pendente</span></div></td>
+              </tr>
+              <tr style="background:#FFF5F5">
+                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
+                <td><div class="cell cell-name">Ligar para lead Carlos Eduardo</div></td>
+                <td><div class="cell cell-muted">—</div></td>
+                <td><div class="cell"><div class="av av-sm" style="background:#EA580C">CE</div>Carlos Eduardo</div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--blue-mid);color:#1D4ED8">Atendimento</span></div></td>
+                <td><div class="cell"><span class="p-tag p-urgent">HOJE</span></div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--yellow-bg);color:var(--yellow)">⚠ Alta</span></div></td>
+                <td><div class="cell cell-muted">Manual</div></td>
+                <td><div class="cell"><div class="av av-sm" style="background:#2563EB">GR</div></div></td>
+                <td><div class="cell"><span class="status-cell" style="background:var(--yellow-bg);color:var(--yellow)">Pendente</span></div></td>
+              </tr>
+              <tr><td colspan="10" style="padding:0;border:none"><div class="group-header"><div class="group-dot" style="background:#D97706"></div><span class="group-name">ESTA SEMANA</span><span class="group-count">3</span><span class="group-toggle">▾</span></div></td></tr>
+              <tr>
+                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
+                <td><div class="cell cell-name">Contestação Trabalhista</div></td>
+                <td><div class="cell" style="font-size:0.77rem;color:var(--blue)">0002345-33.2025</div></td>
+                <td><div class="cell"><div class="av av-sm" style="background:#059669">AC</div>Ana Costa</div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--red-bg);color:var(--red)">Prazo Processual</span></div></td>
+                <td><div class="cell"><span class="p-tag p-urgent">1 dia</span></div></td>
+                <td><div class="cell"><span class="badge" style="background:var(--red-bg);color:var(--red)">🔥 Urgente</span></div></td>
+                <td><div class="cell"><span class="epoc-badge" style="font-size:0.68rem">E-proc</span></div></td>
+                <td><div class="cell"><div class="av av-sm" style="background:#059669">AL</div></div></td>
+                <td><div class="cell"><span class="status-cell" style="background:#DBEAFE;color:#1D4ED8">Em andamento</span></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── FINANCEIRO ── -->
+      <div class="page" id="page-financeiro">
+        <div class="fin-grid">
+          <div class="fin-card">
+            <div class="fin-label">Receita do Mês</div>
+            <div class="fin-value" style="color:var(--green)">R$ 84.200</div>
+            <div class="fin-sub" style="color:var(--green)">▲ +18% vs julho</div>
+          </div>
+          <div class="fin-card">
+            <div class="fin-label">Despesas do Mês</div>
+            <div class="fin-value" style="color:var(--red)">R$ 22.400</div>
+            <div class="fin-sub">Custo operacional</div>
+          </div>
+          <div class="fin-card">
+            <div class="fin-label">Lucro Líquido</div>
+            <div class="fin-value" style="color:var(--blue)">R$ 61.800</div>
+            <div class="fin-sub">Margem 73%</div>
+          </div>
+          <div class="fin-card">
+            <div class="fin-label">Honorários a Receber</div>
+            <div class="fin-value" style="color:var(--yellow)">R$ 18.500</div>
+            <div class="fin-sub">3 faturas em aberto</div>
+          </div>
+        </div>
+        <div class="fin-body">
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div class="card-block">
+              <div class="card-head"><h3>Honorários Recebidos — Julho 2025</h3><button class="btn btn-blue btn-sm">+ Lançamento</button></div>
+              <div class="card-rows">
+                <div class="fin-row"><div class="fin-row-icon" style="background:var(--green-bg)">💰</div><div class="fin-row-info"><strong>Construtora Edifica</strong><span>Mensalidade Agosto · Fixo</span></div><div class="fin-amount" style="color:var(--green)">+ R$ 3.500</div><span style="font-size:0.72rem;color:var(--text-muted)">01/08</span></div>
+                <div class="fin-row"><div class="fin-row-icon" style="background:var(--green-bg)">💰</div><div class="fin-row-info"><strong>Conecta Consultoria</strong><span>Êxito processo trabalhista</span></div><div class="fin-amount" style="color:var(--green)">+ R$ 8.400</div><span style="font-size:0.72rem;color:var(--text-muted)">28/07</span></div>
+                <div class="fin-row"><div class="fin-row-icon" style="background:var(--green-bg)">💰</div><div class="fin-row-info"><strong>G Prime Imóveis</strong><span>Mensalidade Agosto · Fixo</span></div><div class="fin-amount" style="color:var(--green)">+ R$ 2.200</div><span style="font-size:0.72rem;color:var(--text-muted)">01/08</span></div>
+                <div class="fin-row"><div class="fin-row-icon" style="background:var(--green-bg)">💰</div><div class="fin-row-info"><strong>João Pedro Alves</strong><span>Honorário fixo — Tributário</span></div><div class="fin-amount" style="color:var(--green)">+ R$ 45.000</div><span style="font-size:0.72rem;color:var(--text-muted)">15/07</span></div>
+                <div class="fin-row" style="background:var(--red-bg);opacity:.8"><div class="fin-row-icon" style="background:#FCA5A5">⏳</div><div class="fin-row-info"><strong>Remax Exclusive</strong><span>Honorário fixo — Em aberto</span></div><div class="fin-amount" style="color:var(--red)">R$ 8.000</div><span style="font-size:0.72rem;background:var(--red-bg);color:var(--red);padding:2px 7px;border-radius:100px;font-weight:700">Pendente</span></div>
+              </div>
+            </div>
+            <div class="card-block">
+              <div class="card-head"><h3>Despesas — Julho 2025</h3></div>
+              <div class="card-rows">
+                <div class="fin-row"><div class="fin-row-icon" style="background:var(--red-bg)">📢</div><div class="fin-row-info"><strong>Tráfego Pago — Meta Ads</strong><span>Campanha julho</span></div><div class="fin-amount" style="color:var(--red)">- R$ 4.800</div><span style="font-size:0.72rem;color:var(--text-muted)">31/07</span></div>
+                <div class="fin-row"><div class="fin-row-icon" style="background:var(--red-bg)">📢</div><div class="fin-row-info"><strong>Google Ads</strong><span>Campanha julho</span></div><div class="fin-amount" style="color:var(--red)">- R$ 2.100</div><span style="font-size:0.72rem;color:var(--text-muted)">31/07</span></div>
+                <div class="fin-row"><div class="fin-row-icon" style="background:var(--yellow-bg)">🏢</div><div class="fin-row-info"><strong>Aluguel escritório</strong><span>Venc. 10/08</span></div><div class="fin-amount" style="color:var(--red)">- R$ 3.500</div><span style="font-size:0.72rem;color:var(--text-muted)">10/08</span></div>
+                <div class="fin-row"><div class="fin-row-icon" style="background:var(--blue-mid)">💻</div><div class="fin-row-info"><strong>Softwares (CRM, E-proc, etc.)</strong><span>Mensalidade</span></div><div class="fin-amount" style="color:var(--red)">- R$ 890</div><span style="font-size:0.72rem;color:var(--text-muted)">01/08</span></div>
+              </div>
+            </div>
+          </div>
+          <!-- Right: DRE completo -->
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div class="card-block">
+              <div class="card-head" style="flex-wrap:wrap;gap:8px">
+                <h3>DRE — Demonstração do Resultado</h3>
+                <div style="display:flex;gap:6px">
+                  <select id="dre-periodo" style="font-size:0.78rem;padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:#fff" onchange="updateDRE()">
+                    <option value="jul">Julho 2025</option>
+                    <option value="jun">Junho 2025</option>
+                    <option value="acum" selected>Acumulado 2025</option>
+                  </select>
+                  <button class="btn btn-ghost btn-sm" onclick="exportDRE()">⬇ Exportar</button>
+                </div>
+              </div>
+              <div style="padding:0 16px 16px">
+                <table style="width:100%;border-collapse:collapse;font-size:0.81rem" id="dre-table">
+                  <colgroup><col style="width:60%"><col style="width:20%;text-align:right"><col style="width:20%;text-align:right"></colgroup>
+                  <thead>
+                    <tr style="border-bottom:2px solid var(--border)">
+                      <th style="padding:8px 0;text-align:left;font-weight:700;color:var(--text-muted);font-size:0.75rem;text-transform:uppercase;letter-spacing:.04em">Conta</th>
+                      <th style="padding:8px 0;text-align:right;font-weight:700;color:var(--text-muted);font-size:0.75rem;text-transform:uppercase">Valor (R$)</th>
+                      <th style="padding:8px 0;text-align:right;font-weight:700;color:var(--text-muted);font-size:0.75rem;text-transform:uppercase">% Receita</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dre-body">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card-block">
+              <div class="card-head"><h3>Receita por Área</h3></div>
+              <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+                <div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.8rem"><span>Empresarial</span><span style="color:var(--text-muted);font-weight:600">R$ 185k</span></div><div style="height:5px;background:var(--border);border-radius:100px;overflow:hidden"><div style="width:62%;height:100%;background:var(--orange);border-radius:100px"></div></div></div>
+                <div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.8rem"><span>Tributário</span><span style="color:var(--text-muted);font-weight:600">R$ 142k</span></div><div style="height:5px;background:var(--border);border-radius:100px;overflow:hidden"><div style="width:48%;height:100%;background:var(--purple);border-radius:100px"></div></div></div>
+                <div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.8rem"><span>Trabalhista</span><span style="color:var(--text-muted);font-weight:600">R$ 98k</span></div><div style="height:5px;background:var(--border);border-radius:100px;overflow:hidden"><div style="width:33%;height:100%;background:var(--green);border-radius:100px"></div></div></div>
+                <div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.8rem"><span>Família / Cível</span><span style="color:var(--text-muted);font-weight:600">R$ 62k</span></div><div style="height:5px;background:var(--border);border-radius:100px;overflow:hidden"><div style="width:21%;height:100%;background:var(--blue);border-radius:100px"></div></div></div>
+              </div>
+            </div>
+            <div class="card-block">
+              <div class="card-head"><h3>Próximos Vencimentos</h3></div>
+              <div style="padding:4px 16px">
+                <div class="prazo-row"><div class="prazo-info" style="flex:1"><strong>Remax Exclusive</strong><span>Honorário fixo em aberto</span></div><span style="font-weight:700;color:var(--red)">R$ 8.000</span></div>
+                <div class="prazo-row"><div class="prazo-info" style="flex:1"><strong>Aluguel Escritório</strong><span>Venc. 10/08</span></div><span style="font-weight:700;color:var(--yellow)">R$ 3.500</span></div>
+                <div class="prazo-row"><div class="prazo-info" style="flex:1"><strong>INSS / ISS</strong><span>Venc. 20/08</span></div><span style="font-weight:700;color:var(--text-muted)">R$ 4.320</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- MODAL -->
+<div class="overlay" id="modal" onclick="closeModalOut(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modal-title">Novo Lead</h2>
+      <button class="modal-x" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-section form-full">Dados Pessoais</div>
+        <div class="fg"><label>Nome completo *</label><input type="text" placeholder="Nome do cliente ou empresa"/></div>
+        <div class="fg"><label>CPF / CNPJ</label><input type="text" placeholder="000.000.000-00"/></div>
+        <div class="fg"><label>WhatsApp *</label><input type="text" placeholder="(11) 99999-9999"/></div>
+        <div class="fg"><label>E-mail</label><input type="email" placeholder="email@exemplo.com"/></div>
+        <div class="form-section form-full">Informações Jurídicas</div>
+        <div class="fg"><label>Área do Direito *</label>
+          <select><option value="">Selecionar...</option><option>Trabalhista</option><option>Tributário</option><option>Família</option><option>Empresarial</option><option>Cível</option><option>Previdenciário</option><option>Criminal</option><option>Imobiliário</option></select>
+        </div>
+        <div class="fg"><label>Tipo de Demanda</label><input type="text" placeholder="Ex: Rescisão, Divórcio..."/></div>
+        <div class="fg"><label>Origem *</label>
+          <select><option value="">Selecionar...</option><option>Tráfego Pago</option><option>Indicação</option><option>Social Media</option><option>Site Orgânico</option><option>WhatsApp</option></select>
+        </div>
+        <div class="fg"><label>Responsável</label>
+          <select><option>Gustavo Rafael</option><option>Ana Lima</option><option>Bruno Costa</option></select>
+        </div>
+        <div class="fg"><label>Valor Estimado (R$)</label><input type="text" placeholder="Ex: 15.000"/></div>
+        <div class="fg"><label>Tipo de Honorário</label>
+          <select><option value="">Selecionar...</option><option>Fixo</option><option>Êxito</option><option>Mensalidade</option><option>Misto</option></select>
+        </div>
+        <div class="fg form-full"><label>Resumo do caso</label><textarea placeholder="Descreva brevemente a situação..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-blue">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- EPROC TOAST -->
+<div id="eproc-toast" style="display:none;position:fixed;bottom:24px;right:24px;background:#0F172A;color:#fff;padding:12px 18px;border-radius:10px;font-size:0.83rem;z-index:9998;display:none;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(0,0,0,0.3)">
+  <span class="epoc-badge">E-proc</span>
+  <span id="eproc-msg">Sincronizando prazos...</span>
+</div>
+
+<script>
+// ─── LOGIN ───
+function doLogin(){loginAs('Gustavo Rafael','GR','#2563EB','Administrador')}
+
+function loginAs(name,initials,color,role){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').classList.add('show');
+  document.getElementById('user-av').textContent=initials;
+  document.getElementById('user-av').style.background=color;
+  document.getElementById('user-name').textContent=name;
+  document.getElementById('user-role').textContent=role==='admin'?'Administrador':role==='advogado'?'Advogada':role==='estagiario'?'Estagiário':role;
+}
+
+function doLogout(){
+  document.getElementById('app').classList.remove('show');
+  document.getElementById('login-screen').style.display='flex';
+}
+
+// ─── NAV ───
+const titles={dashboard:'Dashboard',clientes:'Controle de Clientes',pipeline:'Pipeline Comercial',processos:'Processos',prazos:'Prazos & Tarefas',financeiro:'Financeiro'};
+function nav(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const pg=document.getElementById('page-'+id);
+  if(pg)pg.classList.add('active');
+  if(el)el.classList.add('active');
+  document.getElementById('topbar-title').textContent=titles[id]||id;
+}
+
+// ─── MODAL ───
+function openModal(type){
+  const t={lead:'Novo Lead',cliente:'Novo Cliente',processo:'Novo Processo'};
+  document.getElementById('modal-title').textContent=t[type]||'Novo Registro';
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){document.getElementById('modal').classList.remove('open')}
+function closeModalOut(e){if(e.target.id==='modal')closeModal()}
+
+// ─── KANBAN DnD ───
+let dragging=null;
+document.querySelectorAll('.k-card').forEach(c=>{
+  c.addEventListener('dragstart',()=>{dragging=c;setTimeout(()=>c.style.opacity='.4',0)});
+  c.addEventListener('dragend',()=>{dragging=null;c.style.opacity='1';document.querySelectorAll('.kanban-cards').forEach(col=>col.style.background='')});
+});
+document.querySelectorAll('.kanban-cards').forEach(col=>{
+  col.addEventListener('dragover',e=>{e.preventDefault();col.style.background='#EFF6FF'});
+  col.addEventListener('dragleave',()=>col.style.background='');
+  col.addEventListener('drop',e=>{
+    e.preventDefault();col.style.background='';
+    if(dragging&&dragging.parentElement!==col)col.appendChild(dragging);
+  });
+});
+
+// ─── VIEW TOGGLE ───
+document.querySelectorAll('.view-toggle').forEach(wrap=>{
+  wrap.querySelectorAll('.view-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      wrap.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+});
+
+// ─── FILTER CHIPS ───
+document.querySelectorAll('.filter-chip').forEach(chip=>{
+  chip.addEventListener('click',()=>chip.classList.toggle('active'));
+});
+
+// ─── EPROC SYNC ───
+function syncEproc(){
+  const t=document.getElementById('eproc-toast');
+  const m=document.getElementById('eproc-msg');
+  t.style.display='flex';m.textContent='Conectando ao E-proc...';
+  setTimeout(()=>m.textContent='Baixando movimentações...',1200);
+  setTimeout(()=>m.textContent='✓ 2 novos prazos importados!',2800);
+  setTimeout(()=>t.style.display='none',5000);
+}
+
+// ─── ADD COLUMN ───
+function showAddColModal(){
+  const ov=document.getElementById('add-col-overlay');
+  ov.style.display='flex';
+  setTimeout(()=>document.getElementById('new-col-title').focus(),50);
+}
+function hideAddColModal(){
+  document.getElementById('add-col-overlay').style.display='none';
+  document.getElementById('new-col-title').value='';
+}
+function addColumn(){
+  const title=document.getElementById('new-col-title').value.trim();
+  if(!title)return document.getElementById('new-col-title').focus();
+  const type=document.getElementById('new-col-type').value;
+  const icons={text:'📝',status:'🏷',date:'📅',number:'🔢',person:'👤'};
+
+  // Add header cell before the "+" th
+  const hrow=document.getElementById('clientes-thead-row');
+  const plusTh=hrow.querySelector('th:last-child');
+  const th=document.createElement('th');
+  th.innerHTML=`<span style="display:flex;align-items:center;gap:4px">${icons[type]||'📝'} <span contenteditable="true" style="outline:none;cursor:text" onblur="this.contentEditable='false'" ondblclick="this.contentEditable='true';this.focus()">${title}</span></span>`;
+  hrow.insertBefore(th,plusTh);
+
+  // Add empty cells to every existing data row (skip group-header rows that have a single td with colspan)
+  document.querySelectorAll('#clientes-table tbody tr').forEach(row=>{
+    const cells=row.querySelectorAll('td');
+    if(cells.length<=1)return; // group header row
+    const lastTd=row.querySelector('td:last-child');
+    const td=document.createElement('td');
+    if(type==='status'){
+      td.innerHTML=`<span class="status-cell" style="background:#F3F4F6;color:#6B7280;cursor:pointer" onclick="cycleStatus(this)">—</span>`;
+    } else if(type==='date'){
+      td.innerHTML=`<input type="date" style="border:none;background:transparent;font-size:0.82rem;color:var(--text);cursor:pointer"/>`;
+    } else if(type==='number'){
+      td.innerHTML=`<input type="number" placeholder="0" style="border:none;background:transparent;font-size:0.82rem;color:var(--text);width:80px;text-align:right"/>`;
+    } else if(type==='person'){
+      td.innerHTML=`<span style="font-size:0.82rem;color:var(--text-muted);cursor:pointer" onclick="this.innerHTML='<input type=text placeholder=Atribuir... style=border:none;font-size:0.82rem;width:90px />'">+ Atribuir</span>`;
+    } else {
+      td.innerHTML=`<span contenteditable="true" style="outline:none;font-size:0.82rem;color:var(--text);display:inline-block;min-width:60px" placeholder="—"></span>`;
+    }
+    row.insertBefore(td,lastTd);
+  });
+
+  hideAddColModal();
+}
+function cycleStatus(el){
+  const statuses=[
+    {label:'—',bg:'#F3F4F6',color:'#6B7280'},
+    {label:'Em andamento',bg:'#DBEAFE',color:'#1D4ED8'},
+    {label:'Concluído',bg:'#D1FAE5',color:'#059669'},
+    {label:'Pendente',bg:'#FEF3C7',color:'#D97706'},
+    {label:'Urgente',bg:'#FEE2E2',color:'#DC2626'},
+  ];
+  const cur=statuses.findIndex(s=>s.label===el.textContent.trim());
+  const next=statuses[(cur+1)%statuses.length];
+  el.textContent=next.label;el.style.background=next.bg;el.style.color=next.color;
+}
+
+// ─── DRE COMPLETO ───
+const dreData={
+  jul:{
+    receitaBruta:84200,deducoesImposto:7600,destonesServico:0,
+    cvo:8200,
+    despPessoal:12000,despMarketing:6900,despEstrutura:3500,despSoftware:890,despOutras:1100,
+    depreciacao:400,resultFinanceiro:-320,ircsll:8400
+  },
+  jun:{
+    receitaBruta:71500,deducoesImposto:6435,destonesServico:0,
+    cvo:6800,
+    despPessoal:12000,despMarketing:5200,despEstrutura:3500,despSoftware:890,despOutras:900,
+    depreciacao:400,resultFinanceiro:-280,ircsll:6800
+  },
+  acum:{
+    receitaBruta:487200,deducoesImposto:43848,destonesServico:0,
+    cvo:51200,
+    despPessoal:84000,despMarketing:38400,despEstrutura:24500,despSoftware:6230,despOutras:7300,
+    depreciacao:2800,resultFinanceiro:-1920,ircsll:44320
+  }
+};
+
+function fmt(v){return'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:0});}
+function pct(v,base){return base?((v/base)*100).toFixed(1)+'%':'—';}
+
+function updateDRE(){
+  const key=document.getElementById('dre-periodo').value;
+  const d=dreData[key];
+  const recLiq=d.receitaBruta-d.deducoesImposto-d.destonesServico;
+  const lucroBruto=recLiq-d.cvo;
+  const despOp=d.despPessoal+d.despMarketing+d.despEstrutura+d.despSoftware+d.despOutras;
+  const ebitda=lucroBruto-despOp;
+  const ebit=ebitda-d.depreciacao;
+  const lair=ebit+d.resultFinanceiro;
+  const lucroLiq=lair-d.ircsll;
+  const base=d.receitaBruta;
+
+  const rows=[
+    {label:'(+) Receita Bruta de Serviços',val:d.receitaBruta,style:'bold',color:'var(--green)'},
+    {label:'(-) Deduções e Impostos sobre Serviços',val:-d.deducoesImposto,style:'indent',color:'var(--red)'},
+    {label:'(-) Descontos Concedidos',val:-d.destonesServico,style:'indent',color:'var(--red)'},
+    {label:'(=) Receita Líquida',val:recLiq,style:'subtotal',color:'var(--text)'},
+    {label:'(-) Custo dos Serviços Prestados (CSV)',val:-d.cvo,style:'indent',color:'var(--red)'},
+    {label:'(=) Lucro Bruto',val:lucroBruto,style:'subtotal',color:lucroBruto>=0?'var(--green)':'var(--red)'},
+    {label:'Despesas Operacionais',val:null,style:'section'},
+    {label:'  · Pessoal e Honorários',val:-d.despPessoal,style:'indent2',color:'var(--red)'},
+    {label:'  · Marketing e Tráfego Pago',val:-d.despMarketing,style:'indent2',color:'var(--red)'},
+    {label:'  · Estrutura e Aluguel',val:-d.despEstrutura,style:'indent2',color:'var(--red)'},
+    {label:'  · Softwares e Tecnologia',val:-d.despSoftware,style:'indent2',color:'var(--red)'},
+    {label:'  · Outras Despesas',val:-d.despOutras,style:'indent2',color:'var(--red)'},
+    {label:'(=) EBITDA',val:ebitda,style:'subtotal highlight',color:ebitda>=0?'var(--blue)':'var(--red)'},
+    {label:'(-) Depreciação e Amortização',val:-d.depreciacao,style:'indent',color:'var(--red)'},
+    {label:'(=) EBIT (Resultado Operacional)',val:ebit,style:'subtotal',color:ebit>=0?'var(--text)':'var(--red)'},
+    {label:'(+/-) Resultado Financeiro',val:d.resultFinanceiro,style:'indent',color:d.resultFinanceiro>=0?'var(--green)':'var(--red)'},
+    {label:'(=) LAIR (Lucro Antes do IR)',val:lair,style:'subtotal',color:lair>=0?'var(--text)':'var(--red)'},
+    {label:'(-) IR e CSLL',val:-d.ircsll,style:'indent',color:'var(--red)'},
+    {label:'(=) Lucro Líquido do Período',val:lucroLiq,style:'total',color:lucroLiq>=0?'var(--green)':'var(--red)'},
+    {label:'Margem Líquida',val:null,meta:pct(lucroLiq,base),style:'meta',color:lucroLiq>=0?'var(--green)':'var(--red)'},
+    {label:'Margem EBITDA',val:null,meta:pct(ebitda,base),style:'meta',color:'var(--blue)'},
+  ];
+
+  const tbody=document.getElementById('dre-body');
+  tbody.innerHTML=rows.map(r=>{
+    if(r.style==='section') return `<tr><td colspan="3" style="padding:10px 0 4px;font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);border-top:1px solid var(--border)">${r.label}</td></tr>`;
+    const isMeta=r.style==='meta';
+    const isTotal=r.style==='total';
+    const isHighlight=r.style==='subtotal highlight';
+    const bg=isTotal?'var(--blue-light)':isHighlight?'#F0F9FF':'';
+    const fw=isTotal||r.style==='bold'?'700':'400';
+    const fs=isTotal?'0.88rem':'0.81rem';
+    const pt=r.style==='subtotal'||r.style==='total'||isHighlight?'8px 0 6px':'4px 0';
+    const bt=r.style==='subtotal'||r.style==='total'||isHighlight?'border-top:1px solid var(--border);':'';
+    const dispVal=r.val!==null?(r.val<0?'-'+fmt(Math.abs(r.val)):fmt(r.val)):(r.meta||'—');
+    const dispPct=r.val!==null?pct(Math.abs(r.val),base):'';
+    return `<tr style="background:${bg}">
+      <td style="padding:${pt};${bt}font-weight:${fw};font-size:${fs};color:var(--text)">${r.label}</td>
+      <td style="padding:${pt};${bt}text-align:right;font-weight:${fw};font-size:${fs};color:${r.color||'var(--text)'}">${dispVal}</td>
+      <td style="padding:${pt};${bt}text-align:right;font-size:0.76rem;color:var(--text-muted)">${isMeta?'':dispPct}</td>
+    </tr>`;
+  }).join('');
+}
+
+function exportDRE(){
+  const periodo=document.getElementById('dre-periodo');
+  const label=periodo.options[periodo.selectedIndex].text;
+  const rows=[...document.querySelectorAll('#dre-body tr')];
+  let csv='Conta;Valor;% Receita\n';
+  rows.forEach(r=>{
+    const cells=[...r.querySelectorAll('td')].map(td=>td.textContent.trim().replace(/;/g,','));
+    if(cells.length)csv+=cells.join(';')+'\n';
+  });
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`DRE_JusTax_${label.replace(/ /g,'_')}.csv`;
+  a.click();
+}
+
+// render DRE on load
+updateDRE();
+</script>
+</body>
+</html>

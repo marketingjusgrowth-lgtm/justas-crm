@@ -395,7 +395,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
       Processos
       <span class="nav-badge">31</span>
     </div>
-    <div class="nav-item" onclick="nav('prazos',this)">
+    <div class="nav-item" onclick="nav('prazos',this);carregarPrazos()">
       <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
       Prazos & Tarefas
       <span class="nav-badge" style="background:#EF4444">3</span>
@@ -985,8 +985,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
                 <th>Status</th>
               </tr>
             </thead>
-            <tbody>
-              <tr><td colspan="10" style="padding:0;border:none"><div class="group-header"><div class="group-dot" style="background:#DC2626"></div><span class="group-name">HOJE</span><span class="group-count">2</span><span class="group-toggle">▾</span></div></td></tr>
+            <tbody id="prazos-tbody">
+              <tr id="prazos-loading"><td colspan="10" style="text-align:center;padding:30px;color:var(--text-muted)">Carregando prazos...</td></tr>
+              <tr style="display:none"><td colspan="10" style="padding:0;border:none"><div class="group-header"><div class="group-dot" style="background:#DC2626"></div><span class="group-name">HOJE</span><span class="group-count">2</span><span class="group-toggle">▾</span></div></td></tr>
               <tr style="background:#FFF5F5">
                 <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
                 <td><div class="cell cell-name">Protocolar Agravo Regimental</div></td>
@@ -2222,6 +2223,123 @@ async function carregarRelatorios(){
     </div>`).join('') || '<span style="color:var(--text-muted);font-size:0.82rem">Nenhum atendimento registrado</span>';
 }
 
+// ─── PRAZOS: CARREGAR DO SUPABASE ───
+const PRIO_STYLES = {
+  urgente:{label:'🔥 Urgente',bg:'var(--red-bg)',color:'var(--red)'},
+  alta:   {label:'⚠ Alta',   bg:'var(--yellow-bg)',color:'var(--yellow)'},
+  media:  {label:'📌 Média', bg:'var(--blue-mid)',color:'#1D4ED8'},
+  baixa:  {label:'📎 Baixa', bg:'#F1F5F9',color:'#475569'},
+};
+const STATUS_PRAZO_STYLE = {
+  'Pendente':     {bg:'var(--yellow-bg)',color:'var(--yellow)'},
+  'pendente':     {bg:'var(--yellow-bg)',color:'var(--yellow)'},
+  'Em andamento': {bg:'#DBEAFE',color:'#1D4ED8'},
+  'Concluído':    {bg:'#D1FAE5',color:'#059669'},
+  'Cancelado':    {bg:'var(--red-bg)',color:'var(--red)'},
+};
+const GRUPOS_CONFIG = {
+  'VENCIDOS':    {dot:'#DC2626'},
+  'HOJE':        {dot:'#DC2626'},
+  'ESTA SEMANA': {dot:'#D97706'},
+  'ESTE MÊS':   {dot:'#2563EB'},
+  'FUTUROS':     {dot:'#059669'},
+  'SEM PRAZO':   {dot:'#94A3B8'},
+};
+
+function getPrazoGrupo(dataPrazo){
+  if(!dataPrazo) return 'SEM PRAZO';
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const prazo = new Date(dataPrazo+'T12:00:00');
+  const diff = Math.floor((prazo-hoje)/(1000*60*60*24));
+  if(diff<0)  return 'VENCIDOS';
+  if(diff===0) return 'HOJE';
+  if(diff<=7)  return 'ESTA SEMANA';
+  if(diff<=30) return 'ESTE MÊS';
+  return 'FUTUROS';
+}
+
+async function carregarPrazos(){
+  const tbody = document.getElementById('prazos-tbody');
+  if(!tbody) return;
+  tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--text-muted)">Carregando...</td></tr>';
+
+  const {data, error} = await supa.from('prazos').select('*').order('data_prazo',{ascending:true,nullsFirst:false});
+  if(error){
+    tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:20px;color:var(--red);font-size:0.85rem">
+      Erro: ${error.message}</td></tr>`;
+    return;
+  }
+  if(!data||data.length===0){
+    tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--text-muted)">Nenhum prazo ou tarefa cadastrado.<br>Clique em "+ Nova Tarefa" ou cadastre um processo.</td></tr>';
+    return;
+  }
+
+  const grupos = {};
+  Object.keys(GRUPOS_CONFIG).forEach(g=>{grupos[g]=[];});
+  data.forEach(p=>{const g=getPrazoGrupo(p.data_prazo); if(grupos[g]) grupos[g].push(p);});
+
+  let html='';
+  Object.keys(grupos).forEach(grupoNome=>{
+    const rows=grupos[grupoNome];
+    if(!rows.length) return;
+    const cfg=GRUPOS_CONFIG[grupoNome];
+    html+=`<tr data-grupo="${grupoNome}"><td colspan="10" style="padding:0;border:none">
+      <div class="group-header" style="cursor:pointer">
+        <div class="group-dot" style="background:${cfg.dot}"></div>
+        <span class="group-name">${grupoNome}</span>
+        <span class="group-count">${rows.length}</span>
+        <span class="group-toggle">▾</span>
+      </div></td></tr>`;
+    rows.forEach(p=>{
+      const ps=PRIO_STYLES[p.prioridade]||PRIO_STYLES.media;
+      const ss=STATUS_PRAZO_STYLE[p.status]||STATUS_PRAZO_STYLE['Pendente'];
+      const fmtData=p.data_prazo?p.data_prazo.split('-').reverse().join('/'):'—';
+      const av=(p.responsavel||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+      const avBg=['#2563EB','#059669','#7C3AED'][(av.charCodeAt(0)||0)%3];
+      const rowBg=(grupoNome==='VENCIDOS'||grupoNome==='HOJE')?'background:#FFF5F5':'';
+      const urgTag=(grupoNome==='HOJE'||grupoNome==='VENCIDOS')?'p-urgent':'';
+      const origemHtml=p.origem==='datajud'
+        ?'<span style="background:#2563EB;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.68rem;font-weight:600">✓ DataJud</span>'
+        :(p.origem==='processo'?'<span style="background:#7C3AED;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.68rem;font-weight:600">Processo</span>':'Manual');
+      html+=`<tr style="${rowBg}" data-id="${p.id}" data-grupo="${grupoNome}">
+        <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
+        <td><div class="cell cell-name">${p.titulo||'—'}</div></td>
+        <td><div class="cell" style="font-size:0.77rem;color:var(--blue)">${p.processo_numero||'—'}</div></td>
+        <td><div class="cell">${p.cliente_nome||'—'}</div></td>
+        <td><div class="cell"><span class="badge" style="background:var(--blue-mid);color:#1D4ED8">${p.tipo||'Outro'}</span></div></td>
+        <td><div class="cell"><span class="p-tag ${urgTag}">${fmtData}</span></div></td>
+        <td><div class="cell"><span class="badge" style="background:${ps.bg};color:${ps.color}">${ps.label}</span></div></td>
+        <td><div class="cell">${origemHtml}</div></td>
+        <td><div class="cell"><div class="av av-sm" style="background:${avBg}">${av}</div></div></td>
+        <td><div class="cell"><span class="status-cell" style="background:${ss.bg};color:${ss.color};cursor:pointer"
+          onclick="alterarStatusPrazo(this,'${p.id}')">${p.status||'Pendente'}</span></div></td>
+      </tr>`;
+    });
+  });
+  tbody.innerHTML=html;
+
+  tbody.querySelectorAll('.group-header').forEach(gh=>{
+    gh.addEventListener('click',()=>{
+      const toggle=gh.querySelector('.group-toggle');
+      const row=gh.closest('tr');
+      const isOpen=toggle.textContent.trim()==='▾';
+      toggle.textContent=isOpen?'▸':'▾';
+      let next=row.nextElementSibling;
+      while(next&&!next.querySelector('.group-header')){
+        next.style.display=isOpen?'none':'';
+        next=next.nextElementSibling;
+      }
+    });
+  });
+}
+
+async function alterarStatusPrazo(el, id){
+  const cur=PRAZOS_CICLO.findIndex(s=>s.txt===el.textContent.trim());
+  const next=PRAZOS_CICLO[(cur+1)%PRAZOS_CICLO.length];
+  el.textContent=next.txt; el.style.background=next.bg; el.style.color=next.color;
+  await supa.from('prazos').update({status:next.txt}).eq('id',id);
+}
+
 // ─── PIPELINE: VIEW TOGGLE ───
 function pipelineView(view, btn){
   document.querySelectorAll('#page-pipeline .view-toggle .view-btn').forEach(b=>b.classList.remove('active'));
@@ -2325,6 +2443,18 @@ async function salvarProcesso(){
     ({error:err} = await supa.from('processos').insert(payload));
   }
   if(err){ alert('Erro ao salvar: '+err.message); return; }
+  if(!_procEditId){
+    await supa.from('prazos').insert({
+      titulo: 'Acompanhamento inicial — '+cliente,
+      processo_numero: document.getElementById('pm-numero').value.trim()||null,
+      cliente_nome: cliente,
+      tipo: 'Prazo Processual',
+      prioridade: 'media',
+      status: 'Pendente',
+      origem: 'processo',
+      user_id: currentUser?.id
+    });
+  }
   fecharModalProcesso();
   carregarProcessos();
   showToast('✓ Processo salvo!');
@@ -2366,37 +2496,19 @@ async function salvarLead(){
 
 // ─── PRAZOS: FILTRAR ───
 function filtrarPrazos(tipo, chip){
-  const chips = document.querySelectorAll('#page-prazos .filter-chip');
-  chips.forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('#page-prazos .filter-chip').forEach(c=>c.classList.remove('active'));
   chip.classList.add('active');
-  const tbody = document.querySelector('#page-prazos tbody');
+  const tbody = document.getElementById('prazos-tbody');
   if(!tbody) return;
-  const grupos = {hoje:null, semana:null, mes:null};
-  tbody.querySelectorAll('tr').forEach(row=>{
-    const gh = row.querySelector('.group-header .group-name');
-    if(gh){
-      const txt = gh.textContent.trim();
-      if(txt==='HOJE') grupos.hoje = row;
-      else if(txt==='ESTA SEMANA') grupos.semana = row;
-      else grupos.mes = row;
-    }
-  });
-  const urgentPrioridade = ['🔥 Urgente', '⚠ Alta'];
   tbody.querySelectorAll('tr').forEach(row=>{
     if(row.querySelector('.group-header')) return;
-    const isUrgent = [...row.querySelectorAll('.badge')].some(b=>urgentPrioridade.some(u=>b.textContent.includes(u.replace('⚠ ','').replace('🔥 ',''))));
-    const groupRow = getGroupRowFor(row, tbody);
-    const isHoje = groupRow === grupos.hoje;
-    const isSemana = groupRow === grupos.semana;
+    const grupo = row.dataset.grupo||'';
+    const badges = [...row.querySelectorAll('.badge')].map(b=>b.textContent);
+    const isUrgent = badges.some(b=>b.includes('Urgente')||b.includes('Alta'));
     if(tipo==='urgente') row.style.display = isUrgent ? '' : 'none';
-    else if(tipo==='semana') row.style.display = (isHoje||isSemana) ? '' : 'none';
+    else if(tipo==='semana') row.style.display = (grupo==='HOJE'||grupo==='ESTA SEMANA'||grupo==='VENCIDOS') ? '' : 'none';
     else row.style.display = '';
   });
-}
-function getGroupRowFor(row, tbody){
-  let prev = row.previousElementSibling;
-  while(prev){ if(prev.querySelector('.group-header')) return prev; prev=prev.previousElementSibling; }
-  return null;
 }
 
 // ─── TAREFA MODAL ───
@@ -2409,56 +2521,26 @@ function abrirModalTarefa(){
 function fecharModalTarefa(){
   document.getElementById('tarefa-overlay').style.display='none';
 }
-function salvarTarefa(){
+async function salvarTarefa(){
   const titulo = document.getElementById('tar-titulo').value.trim();
   if(!titulo){ document.getElementById('tar-titulo').style.borderColor='var(--red)'; return; }
-  const data = document.getElementById('tar-data').value;
-  const tipo = document.getElementById('tar-tipo').value;
-  const prio = document.getElementById('tar-prioridade').value;
-  const resp = document.getElementById('tar-resp').value;
-  const status = document.getElementById('tar-status').value;
-  const cliente = document.getElementById('tar-cliente').value.trim()||'—';
-  const processo = document.getElementById('tar-processo').value.trim()||'—';
-  const prioStyles = {
-    urgente:{label:'🔥 Urgente',bg:'var(--red-bg)',color:'var(--red)'},
-    alta:{label:'⚠ Alta',bg:'var(--yellow-bg)',color:'var(--yellow)'},
-    media:{label:'📌 Média',bg:'var(--blue-mid)',color:'#1D4ED8'},
-    baixa:{label:'📎 Baixa',bg:'#F1F5F9',color:'#475569'}
+  const payload = {
+    titulo,
+    processo_numero: document.getElementById('tar-processo').value.trim()||null,
+    cliente_nome:   document.getElementById('tar-cliente').value.trim()||null,
+    tipo:           document.getElementById('tar-tipo').value,
+    data_prazo:     document.getElementById('tar-data').value||null,
+    prioridade:     document.getElementById('tar-prioridade').value,
+    responsavel:    document.getElementById('tar-resp').value,
+    status:         document.getElementById('tar-status').value,
+    origem:         'manual',
+    user_id:        currentUser?.id
   };
-  const statusStyles = {
-    'Pendente':{bg:'var(--yellow-bg)',color:'var(--yellow)'},
-    'Em andamento':{bg:'#DBEAFE',color:'#1D4ED8'},
-    'Concluído':{bg:'#D1FAE5',color:'#059669'},
-    'Cancelado':{bg:'var(--red-bg)',color:'var(--red)'}
-  };
-  const ps = prioStyles[prio]||prioStyles.media;
-  const ss = statusStyles[status]||statusStyles['Pendente'];
-  const fmtData = data ? data.split('-').reverse().join('/') : '—';
-  const av = resp.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-  const avBg = ['#2563EB','#059669','#7C3AED'][resp.charCodeAt(0)%3];
-  const newRow = document.createElement('tr');
-  newRow.innerHTML = `
-    <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
-    <td><div class="cell cell-name">${titulo}</div></td>
-    <td><div class="cell" style="font-size:0.77rem;color:var(--blue)">${processo}</div></td>
-    <td><div class="cell">${cliente}</div></td>
-    <td><div class="cell"><span class="badge" style="background:var(--blue-mid);color:#1D4ED8">${tipo}</span></div></td>
-    <td><div class="cell"><span class="p-tag">${fmtData}</span></div></td>
-    <td><div class="cell"><span class="badge" style="background:${ps.bg};color:${ps.color}">${ps.label}</span></div></td>
-    <td><div class="cell cell-muted">Manual</div></td>
-    <td><div class="cell"><div class="av av-sm" style="background:${avBg}">${av}</div></div></td>
-    <td><div class="cell"><span class="status-cell" style="background:${ss.bg};color:${ss.color};cursor:pointer" onclick="cycleStatusPrazo(this)">${status}</span></div></td>
-  `;
-  const tbody = document.querySelector('#page-prazos tbody');
-  const lastRow = tbody.querySelector('tr:last-child');
-  tbody.insertBefore(newRow, lastRow || null);
+  const {error} = await supa.from('prazos').insert(payload);
+  if(error){ alert('Erro ao salvar: '+error.message); return; }
   fecharModalTarefa();
+  carregarPrazos();
   showToast('✓ Tarefa adicionada!');
-}
-function cycleStatusPrazo(el){
-  const cur = PRAZOS_CICLO.findIndex(s=>s.txt===el.textContent.trim());
-  const next = PRAZOS_CICLO[(cur+1)%PRAZOS_CICLO.length];
-  el.textContent=next.txt; el.style.background=next.bg; el.style.color=next.color;
 }
 
 // ─── EXPORTAR DADOS ───
@@ -2501,15 +2583,13 @@ async function importarPrazo(nome, data, processo){
     processo_numero: processo,
     data_prazo: new Date(data.split('/').reverse().join('-')).toISOString().split('T')[0],
     prioridade: 'alta',
-    status: 'pendente',
-    origem: 'datajud'
+    status: 'Pendente',
+    origem: 'datajud',
+    user_id: currentUser?.id
   });
   if(!error){
-    const toast = document.createElement('div');
-    toast.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#059669;color:#fff;padding:10px 20px;border-radius:8px;font-size:0.85rem;z-index:9999;font-weight:600';
-    toast.textContent='✓ Prazo importado para Prazos & Tarefas!';
-    document.body.appendChild(toast);
-    setTimeout(()=>toast.remove(), 3000);
+    showToast('✓ Prazo importado para Prazos & Tarefas!');
+    if(document.getElementById('page-prazos')?.classList.contains('active')) carregarPrazos();
   }
 }
 </script>

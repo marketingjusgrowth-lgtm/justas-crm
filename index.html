@@ -836,7 +836,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
           <div class="filter-chip">Área</div>
           <div class="filter-chip">Tribunal</div>
           <div class="filter-chip active"><span class="epoc-badge" style="padding:1px 7px;font-size:0.7rem">E-proc</span> Sincronizado</div>
-          <div style="margin-left:auto"><button class="btn btn-blue btn-sm" onclick="openModal('processo')">+ Novo Processo</button></div>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" onclick="openDatajud()">🔍 Buscar DataJud</button>
+            <button class="btn btn-blue btn-sm" onclick="openModal('processo')">+ Novo Processo</button>
+          </div>
         </div>
         <div class="board-wrap">
           <table class="board-table">
@@ -1123,6 +1126,26 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
       <button class="btn btn-blue">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- DATAJUD MODAL -->
+<div id="datajud-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center;padding:20px" onclick="if(event.target.id==='datajud-overlay')closeDatajud()">
+  <div style="background:#fff;border-radius:16px;width:680px;max-width:95vw;max-height:88vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.25)">
+    <div style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;z-index:1">
+      <div>
+        <h2 style="font-size:1rem;font-weight:700">Buscar Processo — DataJud CNJ</h2>
+        <p style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">Cobre todos os tribunais brasileiros</p>
+      </div>
+      <button onclick="closeDatajud()" style="border:none;background:none;font-size:1.2rem;cursor:pointer;color:var(--text-muted)">✕</button>
+    </div>
+    <div style="padding:20px 24px">
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <input id="datajud-input" type="text" placeholder="Digite o número do processo (ex: 50015432920268240282)" style="flex:1;border:1.5px solid var(--border);border-radius:8px;padding:10px 14px;font-size:0.88rem;font-family:inherit;outline:none" onkeydown="if(event.key==='Enter')buscarDatajud()"/>
+        <button class="btn btn-blue" onclick="buscarDatajud()" id="datajud-btn">Buscar</button>
+      </div>
+      <div id="datajud-result"></div>
     </div>
   </div>
 </div>
@@ -1416,6 +1439,124 @@ function exportDRE(){
 
 // render DRE on load
 updateDRE();
+
+// ─── DATAJUD ───
+const SUPA_FN = 'https://nbnvgvxgvvlnztxoiqxo.supabase.co/functions/v1/datajud-proxy';
+
+const MOVIMENTO_PRAZOS = {
+  12778:'Intimação — resposta em 15 dias',
+  12490:'Sentença — recurso em 15 dias',
+  11010:'Despacho — manifestação em 5 dias',
+  12213:'Audiência — comparecimento obrigatório',
+  12584:'Citação — resposta em 15 dias',
+  11007:'Julgamento realizado',
+  12592:'Pauta de julgamento',
+  22:'Audiência de instrução e julgamento',
+  131:'Audiência de conciliação',
+  848:'Audiência',
+};
+
+const TJ_NOME = {
+  tjac:'TJAC',tjal:'TJAL',tjap:'TJAP',tjam:'TJAM',tjba:'TJBA',
+  tjce:'TJCE',tjdft:'TJDFT',tjes:'TJES',tjgo:'TJGO',tjma:'TJMA',
+  tjmt:'TJMT',tjms:'TJMS',tjmg:'TJMG',tjpa:'TJPA',tjpb:'TJPB',
+  tjpr:'TJPR',tjpe:'TJPE',tjpi:'TJPI',tjrj:'TJRJ',tjrn:'TJRN',
+  tjrs:'TJRS',tjro:'TJRO',tjrr:'TJRR',tjsc:'TJSC',tjsp:'TJSP',
+  tjse:'TJSE',tjto:'TJTO',trf1:'TRF-1',trf2:'TRF-2',trf3:'TRF-3',
+  trf4:'TRF-4',trf5:'TRF-5',trf6:'TRF-6',stj:'STJ',stf:'STF',tst:'TST'
+};
+
+function openDatajud(){
+  const ov=document.getElementById('datajud-overlay');
+  ov.style.display='flex';
+  setTimeout(()=>document.getElementById('datajud-input').focus(),50);
+}
+function closeDatajud(){
+  document.getElementById('datajud-overlay').style.display='none';
+  document.getElementById('datajud-result').innerHTML='';
+  document.getElementById('datajud-input').value='';
+}
+
+async function buscarDatajud(){
+  const numero = document.getElementById('datajud-input').value.trim();
+  if(!numero) return;
+  const btn = document.getElementById('datajud-btn');
+  const result = document.getElementById('datajud-result');
+  btn.textContent='Buscando...'; btn.disabled=true;
+  result.innerHTML='<div style="text-align:center;padding:30px;color:var(--text-muted)">⏳ Consultando DataJud CNJ...</div>';
+
+  try {
+    const res = await supa.functions.invoke('datajud-proxy', {body:{numero}});
+    const data = res.data;
+    btn.textContent='Buscar'; btn.disabled=false;
+
+    if(data?.error){
+      result.innerHTML=`<div style="color:var(--red);padding:16px;background:var(--red-bg);border-radius:8px">❌ ${data.error}</div>`;
+      return;
+    }
+
+    const hits = data?.hits?.hits;
+    if(!hits || hits.length===0){
+      result.innerHTML=`<div style="color:var(--yellow);padding:16px;background:var(--yellow-bg);border-radius:8px">⚠️ Processo não encontrado no DataJud. Verifique o número e tente novamente.</div>`;
+      return;
+    }
+
+    const src = hits[0]._source;
+    const tribunal = (TJ_NOME[data._index] || data._index || '').toUpperCase();
+    const movimentos = (src.movimentos || []).slice(0,15);
+
+    const movHtml = movimentos.map((m)=>{
+      const dt = m.dataHora ? new Date(m.dataHora).toLocaleDateString('pt-BR') : '—';
+      const isPrazo = Object.keys(MOVIMENTO_PRAZOS).includes(String(m.codigo));
+      const prazoLabel = isPrazo ? MOVIMENTO_PRAZOS[m.codigo] : '';
+      return `<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:0.72rem;color:var(--text-muted);min-width:72px;margin-top:2px">${dt}</span>
+        <div style="flex:1">
+          <div style="font-size:0.82rem;font-weight:${isPrazo?'700':'400'};color:${isPrazo?'var(--blue)':'var(--text)'}">${m.nome||'Movimentação'}</div>
+          ${prazoLabel?`<div style="font-size:0.72rem;color:var(--orange);margin-top:2px">⚠ ${prazoLabel}</div>`:''}
+        </div>
+        ${isPrazo?`<button onclick="importarPrazo('${m.nome}','${dt}','${data._fmt}')" style="font-size:0.72rem;padding:3px 9px;border:1px solid var(--blue);border-radius:5px;background:var(--blue-light);color:var(--blue);cursor:pointer;white-space:nowrap">+ Importar prazo</button>`:''}
+      </div>`;
+    }).join('');
+
+    result.innerHTML = `
+      <div style="background:var(--blue-light);border-radius:10px;padding:14px 16px;margin-bottom:16px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.82rem">
+          <div><span style="color:var(--text-muted)">Processo:</span> <strong>${data._fmt}</strong></div>
+          <div><span style="color:var(--text-muted)">Tribunal:</span> <strong>${tribunal}</strong></div>
+          <div><span style="color:var(--text-muted)">Classe:</span> <strong>${src.classe?.nome||'—'}</strong></div>
+          <div><span style="color:var(--text-muted)">Órgão:</span> <strong>${src.orgaoJulgador?.nome||'—'}</strong></div>
+          <div><span style="color:var(--text-muted)">Ajuizamento:</span> <strong>${src.dataAjuizamento?new Date(src.dataAjuizamento).toLocaleDateString('pt-BR'):'—'}</strong></div>
+          <div><span style="color:var(--text-muted)">Última atualização:</span> <strong>${src.dataHoraUltimaAtualizacao?new Date(src.dataHoraUltimaAtualizacao).toLocaleDateString('pt-BR'):'—'}</strong></div>
+        </div>
+        ${src.assuntos?.length?`<div style="margin-top:8px;font-size:0.78rem;color:var(--text-muted)">Assunto: <strong style="color:var(--text)">${src.assuntos[0].nome}</strong></div>`:''}
+      </div>
+      <div style="font-weight:700;font-size:0.82rem;margin-bottom:8px">Últimas movimentações</div>
+      ${movHtml}
+    `;
+  } catch(e){
+    btn.textContent='Buscar'; btn.disabled=false;
+    result.innerHTML=`<div style="color:var(--red);padding:16px;background:var(--red-bg);border-radius:8px">❌ Erro: ${e.message}</div>`;
+  }
+}
+
+async function importarPrazo(nome, data, processo){
+  const {error} = await supa.from('prazos').insert({
+    titulo: nome,
+    processo_numero: processo,
+    data_prazo: new Date(data.split('/').reverse().join('-')).toISOString().split('T')[0],
+    prioridade: 'alta',
+    status: 'pendente',
+    origem: 'datajud'
+  });
+  if(!error){
+    const toast = document.createElement('div');
+    toast.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#059669;color:#fff;padding:10px 20px;border-radius:8px;font-size:0.85rem;z-index:9999;font-weight:600';
+    toast.textContent='✓ Prazo importado para Prazos & Tarefas!';
+    document.body.appendChild(toast);
+    setTimeout(()=>toast.remove(), 3000);
+  }
+}
 </script>
 </body>
 </html>

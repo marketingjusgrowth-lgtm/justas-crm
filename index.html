@@ -1182,7 +1182,7 @@ function enterApp(user){
   document.getElementById('user-av').style.background = cor;
   document.getElementById('user-name').textContent = nome;
   document.getElementById('user-role').textContent = cargo;
-  carregarProcessos();
+  setTimeout(()=>carregarProcessos().catch(e=>console.error('carregarProcessos erro:',e)), 300);
 }
 
 function loginAs(name,initials,color,role){

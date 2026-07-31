@@ -442,6 +442,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
         <div class="btn-icon" title="E-proc: sincronizar prazos" onclick="syncEproc()">
           <svg width="15" height="15" viewBox="0 0 20 20" fill="#2563EB"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/></svg>
         </div>
+        <div class="btn-icon" title="Exportar todos os dados (backup JSON)" onclick="exportarDados()" style="background:#ECFDF5;border:1px solid #BBF7D0">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="#059669"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+        </div>
         <button class="btn btn-blue btn-sm" onclick="openModal()">+ Novo</button>
       </div>
     </div>
@@ -765,15 +768,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
       <div class="page" id="page-pipeline">
         <div class="page-toolbar">
           <div class="view-toggle">
-            <button class="view-btn active">🗂 Pipeline</button>
-            <button class="view-btn">📋 Lista</button>
+            <button class="view-btn active" onclick="pipelineView('kanban',this)">🗂 Pipeline</button>
+            <button class="view-btn" onclick="pipelineView('lista',this)">📋 Lista</button>
           </div>
           <div class="divider"></div>
-          <select style="border:1px solid var(--border);background:#fff;border-radius:6px;padding:5px 10px;font-size:0.78rem;font-family:inherit;cursor:pointer"><option>Todas as áreas</option><option>Trabalhista</option><option>Tributário</option><option>Família</option><option>Empresarial</option></select>
-          <select style="border:1px solid var(--border);background:#fff;border-radius:6px;padding:5px 10px;font-size:0.78rem;font-family:inherit;cursor:pointer"><option>Todos responsáveis</option><option>Gustavo</option><option>Ana Lima</option><option>Bruno</option></select>
+          <select id="pipe-area" onchange="filterPipeline()" style="border:1px solid var(--border);background:#fff;border-radius:6px;padding:5px 10px;font-size:0.78rem;font-family:inherit;cursor:pointer"><option value="">Todas as áreas</option><option>Trabalhista</option><option>Tributário</option><option>Família</option><option>Empresarial</option></select>
+          <select id="pipe-resp" onchange="filterPipeline()" style="border:1px solid var(--border);background:#fff;border-radius:6px;padding:5px 10px;font-size:0.78rem;font-family:inherit;cursor:pointer"><option value="">Todos responsáveis</option><option>GR</option><option>AL</option><option>BC</option></select>
           <div style="margin-left:auto"><button class="btn btn-blue btn-sm" onclick="openModal('lead')">+ Novo Lead</button></div>
         </div>
-        <div class="kanban-wrap">
+        <div class="kanban-wrap" id="pipeline-kanban">
           <!-- Frio -->
           <div class="kanban-col">
             <div class="kanban-col-head"><div class="k-dot" style="background:#94A3B8"></div><span class="k-title">Frio</span><span class="k-count">3</span></div>
@@ -901,6 +904,22 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
             <button class="k-add-btn">+ Adicionar</button>
           </div>
         </div>
+        <div id="pipeline-lista" style="display:none;flex:1;overflow:auto;padding:0 20px 20px">
+          <table class="board-table" id="pipeline-list-table">
+            <thead>
+              <tr>
+                <th>Lead</th>
+                <th>Área</th>
+                <th>Telefone</th>
+                <th>Estágio</th>
+                <th>Responsável</th>
+                <th>Data</th>
+                <th>Valor</th>
+              </tr>
+            </thead>
+            <tbody id="pipeline-list-body"></tbody>
+          </table>
+        </div>
       </div>
 
       <!-- ── PROCESSOS ── -->
@@ -944,11 +963,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
       <!-- ── PRAZOS ── -->
       <div class="page" id="page-prazos">
         <div class="page-toolbar">
-          <div class="filter-chip active">🔴 Urgentes (3)</div>
-          <div class="filter-chip">⚠ Esta semana</div>
-          <div class="filter-chip">📅 Este mês</div>
+          <div class="filter-chip active" onclick="filtrarPrazos('urgente',this)">🔴 Urgentes (3)</div>
+          <div class="filter-chip" onclick="filtrarPrazos('semana',this)">⚠ Esta semana</div>
+          <div class="filter-chip" onclick="filtrarPrazos('mes',this)">📅 Este mês</div>
           <div class="filter-chip active"><span class="epoc-badge" style="padding:1px 7px;font-size:0.7rem">E-proc</span> Auto-import</div>
-          <div style="margin-left:auto"><button class="btn btn-blue btn-sm">+ Nova Tarefa</button></div>
+          <div style="margin-left:auto"><button class="btn btn-blue btn-sm" onclick="abrirModalTarefa()">+ Nova Tarefa</button></div>
         </div>
         <div class="board-wrap">
           <table class="board-table">
@@ -1210,31 +1229,102 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
     <div class="modal-body">
       <div class="form-grid">
         <div class="form-section form-full">Dados Pessoais</div>
-        <div class="fg"><label>Nome completo *</label><input type="text" placeholder="Nome do cliente ou empresa"/></div>
-        <div class="fg"><label>CPF / CNPJ</label><input type="text" placeholder="000.000.000-00"/></div>
-        <div class="fg"><label>WhatsApp *</label><input type="text" placeholder="(11) 99999-9999"/></div>
-        <div class="fg"><label>E-mail</label><input type="email" placeholder="email@exemplo.com"/></div>
+        <div class="fg"><label>Nome completo *</label><input id="m-nome" type="text" placeholder="Nome do cliente ou empresa"/></div>
+        <div class="fg"><label>CPF / CNPJ</label><input id="m-cpf" type="text" placeholder="000.000.000-00"/></div>
+        <div class="fg"><label>WhatsApp *</label><input id="m-tel" type="text" placeholder="(11) 99999-9999"/></div>
+        <div class="fg"><label>E-mail</label><input id="m-email" type="email" placeholder="email@exemplo.com"/></div>
         <div class="form-section form-full">Informações Jurídicas</div>
         <div class="fg"><label>Área do Direito *</label>
-          <select><option value="">Selecionar...</option><option>Trabalhista</option><option>Tributário</option><option>Família</option><option>Empresarial</option><option>Cível</option><option>Previdenciário</option><option>Criminal</option><option>Imobiliário</option></select>
+          <select id="m-area"><option value="">Selecionar...</option><option>Trabalhista</option><option>Tributário</option><option>Família</option><option>Empresarial</option><option>Cível</option><option>Previdenciário</option><option>Criminal</option><option>Imobiliário</option></select>
         </div>
-        <div class="fg"><label>Tipo de Demanda</label><input type="text" placeholder="Ex: Rescisão, Divórcio..."/></div>
+        <div class="fg"><label>Tipo de Demanda</label><input id="m-demanda" type="text" placeholder="Ex: Rescisão, Divórcio..."/></div>
         <div class="fg"><label>Origem *</label>
-          <select><option value="">Selecionar...</option><option>Tráfego Pago</option><option>Indicação</option><option>Social Media</option><option>Site Orgânico</option><option>WhatsApp</option></select>
+          <select id="m-origem"><option value="">Selecionar...</option><option>Tráfego Pago</option><option>Indicação</option><option>Social Media</option><option>Site Orgânico</option><option>WhatsApp</option></select>
         </div>
         <div class="fg"><label>Responsável</label>
-          <select><option>Gustavo Rafael</option><option>Ana Lima</option><option>Bruno Costa</option></select>
+          <select id="m-resp"><option>Gustavo Rafael</option><option>Ana Lima</option><option>Bruno Costa</option></select>
         </div>
-        <div class="fg"><label>Valor Estimado (R$)</label><input type="text" placeholder="Ex: 15.000"/></div>
+        <div class="fg"><label>Valor Estimado (R$)</label><input id="m-valor" type="text" placeholder="Ex: 15.000"/></div>
         <div class="fg"><label>Tipo de Honorário</label>
-          <select><option value="">Selecionar...</option><option>Fixo</option><option>Êxito</option><option>Mensalidade</option><option>Misto</option></select>
+          <select id="m-honorario"><option value="">Selecionar...</option><option>Fixo</option><option>Êxito</option><option>Mensalidade</option><option>Misto</option></select>
         </div>
-        <div class="fg form-full"><label>Resumo do caso</label><textarea placeholder="Descreva brevemente a situação..."></textarea></div>
+        <div class="fg form-full"><label>Resumo do caso</label><textarea id="m-resumo" placeholder="Descreva brevemente a situação..."></textarea></div>
       </div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
-      <button class="btn btn-blue">Salvar</button>
+      <button class="btn btn-blue" onclick="salvarLead()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROCESSO MODAL -->
+<div class="overlay" id="proc-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center;padding:20px" onclick="if(event.target.id==='proc-overlay')fecharModalProcesso()">
+  <div class="modal" style="max-width:580px;width:100%">
+    <div class="modal-head">
+      <h2 id="proc-modal-titulo">Novo Processo</h2>
+      <button class="modal-x" onclick="fecharModalProcesso()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-section form-full">Dados do Processo</div>
+        <div class="fg"><label>Nº do Processo</label><input id="pm-numero" type="text" placeholder="0000000-00.0000.0.00.0000"/></div>
+        <div class="fg"><label>Cliente *</label><input id="pm-cliente" type="text" placeholder="Nome do cliente"/></div>
+        <div class="fg"><label>Área do Direito *</label>
+          <select id="pm-area"><option value="">Selecionar...</option><option>Trabalhista</option><option>Tributário</option><option>Família</option><option>Empresarial</option><option>Cível</option><option>Previdenciário</option><option>Criminal</option><option>Imobiliário</option></select>
+        </div>
+        <div class="fg"><label>Tribunal</label><input id="pm-tribunal" type="text" placeholder="Ex: TJPR, TRT-9, STJ"/></div>
+        <div class="fg"><label>Fase</label>
+          <select id="pm-fase"><option>Conhecimento</option><option>Recursal</option><option>Execução</option><option>Acordo</option><option>Arquivado</option></select>
+        </div>
+        <div class="fg"><label>Status</label>
+          <select id="pm-status"><option>Em andamento</option><option>Pendente</option><option>Concluído</option><option>Suspenso</option></select>
+        </div>
+        <div class="fg"><label>Ação Requerida</label><input id="pm-acao" type="text" placeholder="Ex: Protocolar contestação..."/></div>
+        <div class="fg"><label>Responsável</label>
+          <select id="pm-resp"><option>Gustavo Rafael</option><option>Ana Lima</option><option>Bruno Costa</option></select>
+        </div>
+        <div class="fg form-full"><label>Observações</label><textarea id="pm-obs" rows="3" placeholder="Notas sobre o processo..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button id="pm-btn-excluir" style="display:none;margin-right:auto" class="btn" onclick="excluirProcessoCRM()">🗑 Excluir</button>
+      <button class="btn btn-ghost" onclick="fecharModalProcesso()">Cancelar</button>
+      <button class="btn btn-blue" onclick="salvarProcesso()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TAREFA MODAL -->
+<div class="overlay" id="tarefa-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center;padding:20px" onclick="if(event.target.id==='tarefa-overlay')fecharModalTarefa()">
+  <div class="modal" style="max-width:520px;width:100%">
+    <div class="modal-head">
+      <h2 id="tarefa-modal-titulo">Nova Tarefa</h2>
+      <button class="modal-x" onclick="fecharModalTarefa()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="fg form-full"><label>Tarefa / Prazo *</label><input id="tar-titulo" type="text" placeholder="Descreva a tarefa ou prazo..."/></div>
+        <div class="fg"><label>Processo (nº)</label><input id="tar-processo" type="text" placeholder="Opcional"/></div>
+        <div class="fg"><label>Cliente</label><input id="tar-cliente" type="text" placeholder="Nome do cliente"/></div>
+        <div class="fg"><label>Tipo</label>
+          <select id="tar-tipo"><option>Prazo Processual</option><option>Atendimento</option><option>Reunião</option><option>Documento</option><option>Outro</option></select>
+        </div>
+        <div class="fg"><label>Prazo *</label><input id="tar-data" type="date"/></div>
+        <div class="fg"><label>Prioridade</label>
+          <select id="tar-prioridade"><option value="urgente">🔥 Urgente</option><option value="alta">⚠ Alta</option><option value="media">📌 Média</option><option value="baixa">📎 Baixa</option></select>
+        </div>
+        <div class="fg"><label>Responsável</label>
+          <select id="tar-resp"><option>Gustavo Rafael</option><option>Ana Lima</option><option>Bruno Costa</option></select>
+        </div>
+        <div class="fg"><label>Status</label>
+          <select id="tar-status"><option>Pendente</option><option>Em andamento</option><option>Concluído</option><option>Cancelado</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="fecharModalTarefa()">Cancelar</button>
+      <button class="btn btn-blue" onclick="salvarTarefa()">Salvar</button>
     </div>
   </div>
 </div>
@@ -1382,9 +1472,14 @@ function nav(id,el){
 }
 
 // ─── MODAL ───
+let _modalType = 'lead';
 function openModal(type){
-  const t={lead:'Novo Lead',cliente:'Novo Cliente',processo:'Novo Processo'};
-  document.getElementById('modal-title').textContent=t[type]||'Novo Registro';
+  if(type==='processo') return abrirModalProcesso();
+  _modalType = type || 'lead';
+  const t={lead:'Novo Lead',cliente:'Novo Cliente'};
+  document.getElementById('modal-title').textContent=t[_modalType]||'Novo Registro';
+  ['m-nome','m-cpf','m-tel','m-email','m-demanda','m-valor','m-resumo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['m-area','m-origem','m-resp','m-honorario'].forEach(id=>{const el=document.getElementById(id);if(el)el.selectedIndex=0;});
   document.getElementById('modal').classList.add('open');
 }
 function closeModal(){document.getElementById('modal').classList.remove('open')}
@@ -1401,7 +1496,7 @@ document.querySelectorAll('.kanban-cards').forEach(col=>{
   col.addEventListener('dragleave',()=>col.style.background='');
   col.addEventListener('drop',e=>{
     e.preventDefault();col.style.background='';
-    if(dragging&&dragging.parentElement!==col)col.appendChild(dragging);
+    if(dragging&&dragging.parentElement!==col){col.appendChild(dragging);updateKanbanCounts();}
   });
 });
 
@@ -1940,12 +2035,21 @@ const STATUS_CICLO = [
   {txt:'⏸ Pausado', bg:'#F1F5F9', color:'#475569'},
   {txt:'✗ Encerrado', bg:'#FEE2E2', color:'#991B1B'},
 ];
+const PRAZOS_CICLO = [
+  {txt:'Pendente',     bg:'#FEF3C7', color:'#D97706'},
+  {txt:'Em andamento', bg:'#DBEAFE', color:'#1D4ED8'},
+  {txt:'Concluído',   bg:'#D1FAE5', color:'#059669'},
+  {txt:'Cancelado',   bg:'#FEE2E2', color:'#991B1B'},
+];
 document.querySelectorAll('.status-cell').forEach(sc=>{
+  sc.style.cursor='pointer';
   sc.title='Clique para alterar status';
   sc.addEventListener('click', e=>{
     e.stopPropagation();
-    const cur = STATUS_CICLO.findIndex(s=>s.txt===sc.textContent.trim());
-    const next = STATUS_CICLO[(cur+1)%STATUS_CICLO.length];
+    const isPrazo = !!sc.closest('#page-prazos');
+    const ciclo = isPrazo ? PRAZOS_CICLO : STATUS_CICLO;
+    const cur = ciclo.findIndex(s=>s.txt===sc.textContent.trim());
+    const next = ciclo[(cur+1)%ciclo.length];
     sc.textContent=next.txt; sc.style.background=next.bg; sc.style.color=next.color;
   });
 });
@@ -2116,6 +2220,279 @@ async function carregarRelatorios(){
       <div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/maxT*100)}%;background:var(--purple)"></div></div>
       <div class="bar-val">${v}</div>
     </div>`).join('') || '<span style="color:var(--text-muted);font-size:0.82rem">Nenhum atendimento registrado</span>';
+}
+
+// ─── PIPELINE: VIEW TOGGLE ───
+function pipelineView(view, btn){
+  document.querySelectorAll('#page-pipeline .view-toggle .view-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const kanban = document.getElementById('pipeline-kanban');
+  const lista  = document.getElementById('pipeline-lista');
+  if(view==='lista'){
+    kanban.style.display='none'; lista.style.display='flex';
+    renderPipelineLista();
+  } else {
+    kanban.style.display=''; lista.style.display='none';
+  }
+}
+
+function renderPipelineLista(){
+  const tbody = document.getElementById('pipeline-list-body');
+  const rows = [];
+  document.querySelectorAll('.kanban-col').forEach(col=>{
+    const stage = col.querySelector('.k-title')?.textContent||'';
+    col.querySelectorAll('.k-card').forEach(card=>{
+      const name  = card.querySelector('.k-card-name')?.textContent||'—';
+      const details = [...card.querySelectorAll('.k-card-detail')].map(d=>d.textContent);
+      const area  = details.find(d=>!d.startsWith('📞'))?.replace('📞','').trim()||'—';
+      const tel   = details.find(d=>d.startsWith('📞'))?.replace('📞','').trim()||'—';
+      const date  = card.querySelector('.k-card-date')?.textContent||'—';
+      const value = card.querySelector('.k-card-value')?.textContent||'—';
+      const resp  = card.querySelector('.av-sm')?.textContent||'—';
+      rows.push(`<tr>
+        <td><div class="cell cell-name">${name}</div></td>
+        <td><div class="cell cell-muted">${area}</div></td>
+        <td><div class="cell cell-muted">${tel}</div></td>
+        <td><div class="cell"><span style="padding:2px 8px;border-radius:100px;font-size:0.75rem;background:#DBEAFE;color:#1D4ED8;font-weight:600">${stage}</span></div></td>
+        <td><div class="cell"><div class="av av-sm" style="background:#2563EB">${resp}</div></div></td>
+        <td><div class="cell cell-muted">${date}</div></td>
+        <td><div class="cell" style="color:var(--green);font-weight:600">${value}</div></td>
+      </tr>`);
+    });
+  });
+  tbody.innerHTML = rows.join('') || '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted)">Nenhum lead no pipeline</td></tr>';
+}
+
+// ─── PIPELINE: FILTRAR CARDS ───
+function filterPipeline(){
+  const area = document.getElementById('pipe-area').value.toLowerCase();
+  const resp = document.getElementById('pipe-resp').value.toLowerCase();
+  document.querySelectorAll('.k-card').forEach(card=>{
+    const details = [...card.querySelectorAll('.k-card-detail')].map(d=>d.textContent.toLowerCase()).join(' ');
+    const cardResp = card.querySelector('.av-sm')?.textContent.toLowerCase()||'';
+    const areaOk = !area || details.includes(area);
+    const respOk = !resp || cardResp.includes(resp);
+    card.style.display = (areaOk && respOk) ? '' : 'none';
+  });
+  updateKanbanCounts();
+}
+
+// ─── PIPELINE: ATUALIZAR CONTAGENS ───
+function updateKanbanCounts(){
+  document.querySelectorAll('.kanban-col').forEach(col=>{
+    const count = col.querySelectorAll('.k-card:not([style*="display: none"]):not([style*="display:none"])').length;
+    const countEl = col.querySelector('.k-count');
+    if(countEl) countEl.textContent = count;
+  });
+}
+
+// ─── PROCESSO MODAL ───
+let _procEditId = null;
+function abrirModalProcesso(id){
+  _procEditId = id || null;
+  document.getElementById('proc-modal-titulo').textContent = id ? 'Editar Processo' : 'Novo Processo';
+  document.getElementById('pm-btn-excluir').style.display = id ? 'inline-flex' : 'none';
+  if(!id){
+    ['pm-numero','pm-cliente','pm-tribunal','pm-acao','pm-obs'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+    ['pm-area','pm-fase','pm-status','pm-resp'].forEach(i=>{const el=document.getElementById(i);if(el)el.selectedIndex=0;});
+  }
+  document.getElementById('proc-overlay').style.display='flex';
+  setTimeout(()=>document.getElementById('pm-cliente').focus(),50);
+}
+
+function fecharModalProcesso(){
+  document.getElementById('proc-overlay').style.display='none';
+  _procEditId = null;
+}
+
+async function salvarProcesso(){
+  const cliente = document.getElementById('pm-cliente').value.trim();
+  if(!cliente){ document.getElementById('pm-cliente').style.borderColor='var(--red)'; return; }
+  const payload = {
+    numero:         document.getElementById('pm-numero').value.trim()||null,
+    cliente_nome:   cliente,
+    area:           document.getElementById('pm-area').value||null,
+    tribunal:       document.getElementById('pm-tribunal').value.trim()||null,
+    fase:           document.getElementById('pm-fase').value,
+    status:         document.getElementById('pm-status').value,
+    acao_requerida: document.getElementById('pm-acao').value.trim()||null,
+    origem:         'manual'
+  };
+  let err;
+  if(_procEditId){
+    ({error:err} = await supa.from('processos').update(payload).eq('id',_procEditId));
+  } else {
+    ({error:err} = await supa.from('processos').insert(payload));
+  }
+  if(err){ alert('Erro ao salvar: '+err.message); return; }
+  fecharModalProcesso();
+  carregarProcessos();
+  showToast('✓ Processo salvo!');
+}
+
+async function excluirProcessoCRM(){
+  if(!_procEditId||!confirm('Excluir este processo?')) return;
+  const {error} = await supa.from('processos').delete().eq('id',_procEditId);
+  if(error){ alert('Erro: '+error.message); return; }
+  fecharModalProcesso();
+  carregarProcessos();
+}
+
+// ─── LEAD MODAL SAVE ───
+async function salvarLead(){
+  const nome = document.getElementById('m-nome').value.trim();
+  if(!nome){ document.getElementById('m-nome').style.borderColor='var(--red)'; return; }
+  const payload = {
+    nome,
+    cpf_cnpj:   document.getElementById('m-cpf').value.trim()||null,
+    whatsapp:   document.getElementById('m-tel').value.trim()||null,
+    email:      document.getElementById('m-email').value.trim()||null,
+    area:       document.getElementById('m-area').value||null,
+    demanda:    document.getElementById('m-demanda').value.trim()||null,
+    origem:     document.getElementById('m-origem').value||null,
+    responsavel:document.getElementById('m-resp').value||null,
+    valor_est:  document.getElementById('m-valor').value.trim()||null,
+    honorario:  document.getElementById('m-honorario').value||null,
+    resumo:     document.getElementById('m-resumo').value.trim()||null,
+    estagio:    'Frio'
+  };
+  const {error} = await supa.from('leads').insert(payload);
+  if(error && !error.message.includes('does not exist')){
+    alert('Erro ao salvar: '+error.message); return;
+  }
+  closeModal();
+  showToast('✓ Lead salvo!');
+}
+
+// ─── PRAZOS: FILTRAR ───
+function filtrarPrazos(tipo, chip){
+  const chips = document.querySelectorAll('#page-prazos .filter-chip');
+  chips.forEach(c=>c.classList.remove('active'));
+  chip.classList.add('active');
+  const tbody = document.querySelector('#page-prazos tbody');
+  if(!tbody) return;
+  const grupos = {hoje:null, semana:null, mes:null};
+  tbody.querySelectorAll('tr').forEach(row=>{
+    const gh = row.querySelector('.group-header .group-name');
+    if(gh){
+      const txt = gh.textContent.trim();
+      if(txt==='HOJE') grupos.hoje = row;
+      else if(txt==='ESTA SEMANA') grupos.semana = row;
+      else grupos.mes = row;
+    }
+  });
+  const urgentPrioridade = ['🔥 Urgente', '⚠ Alta'];
+  tbody.querySelectorAll('tr').forEach(row=>{
+    if(row.querySelector('.group-header')) return;
+    const isUrgent = [...row.querySelectorAll('.badge')].some(b=>urgentPrioridade.some(u=>b.textContent.includes(u.replace('⚠ ','').replace('🔥 ',''))));
+    const groupRow = getGroupRowFor(row, tbody);
+    const isHoje = groupRow === grupos.hoje;
+    const isSemana = groupRow === grupos.semana;
+    if(tipo==='urgente') row.style.display = isUrgent ? '' : 'none';
+    else if(tipo==='semana') row.style.display = (isHoje||isSemana) ? '' : 'none';
+    else row.style.display = '';
+  });
+}
+function getGroupRowFor(row, tbody){
+  let prev = row.previousElementSibling;
+  while(prev){ if(prev.querySelector('.group-header')) return prev; prev=prev.previousElementSibling; }
+  return null;
+}
+
+// ─── TAREFA MODAL ───
+function abrirModalTarefa(){
+  ['tar-titulo','tar-processo','tar-cliente'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  document.getElementById('tar-data').value = new Date().toISOString().split('T')[0];
+  document.getElementById('tarefa-overlay').style.display='flex';
+  setTimeout(()=>document.getElementById('tar-titulo').focus(),50);
+}
+function fecharModalTarefa(){
+  document.getElementById('tarefa-overlay').style.display='none';
+}
+function salvarTarefa(){
+  const titulo = document.getElementById('tar-titulo').value.trim();
+  if(!titulo){ document.getElementById('tar-titulo').style.borderColor='var(--red)'; return; }
+  const data = document.getElementById('tar-data').value;
+  const tipo = document.getElementById('tar-tipo').value;
+  const prio = document.getElementById('tar-prioridade').value;
+  const resp = document.getElementById('tar-resp').value;
+  const status = document.getElementById('tar-status').value;
+  const cliente = document.getElementById('tar-cliente').value.trim()||'—';
+  const processo = document.getElementById('tar-processo').value.trim()||'—';
+  const prioStyles = {
+    urgente:{label:'🔥 Urgente',bg:'var(--red-bg)',color:'var(--red)'},
+    alta:{label:'⚠ Alta',bg:'var(--yellow-bg)',color:'var(--yellow)'},
+    media:{label:'📌 Média',bg:'var(--blue-mid)',color:'#1D4ED8'},
+    baixa:{label:'📎 Baixa',bg:'#F1F5F9',color:'#475569'}
+  };
+  const statusStyles = {
+    'Pendente':{bg:'var(--yellow-bg)',color:'var(--yellow)'},
+    'Em andamento':{bg:'#DBEAFE',color:'#1D4ED8'},
+    'Concluído':{bg:'#D1FAE5',color:'#059669'},
+    'Cancelado':{bg:'var(--red-bg)',color:'var(--red)'}
+  };
+  const ps = prioStyles[prio]||prioStyles.media;
+  const ss = statusStyles[status]||statusStyles['Pendente'];
+  const fmtData = data ? data.split('-').reverse().join('/') : '—';
+  const av = resp.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  const avBg = ['#2563EB','#059669','#7C3AED'][resp.charCodeAt(0)%3];
+  const newRow = document.createElement('tr');
+  newRow.innerHTML = `
+    <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
+    <td><div class="cell cell-name">${titulo}</div></td>
+    <td><div class="cell" style="font-size:0.77rem;color:var(--blue)">${processo}</div></td>
+    <td><div class="cell">${cliente}</div></td>
+    <td><div class="cell"><span class="badge" style="background:var(--blue-mid);color:#1D4ED8">${tipo}</span></div></td>
+    <td><div class="cell"><span class="p-tag">${fmtData}</span></div></td>
+    <td><div class="cell"><span class="badge" style="background:${ps.bg};color:${ps.color}">${ps.label}</span></div></td>
+    <td><div class="cell cell-muted">Manual</div></td>
+    <td><div class="cell"><div class="av av-sm" style="background:${avBg}">${av}</div></div></td>
+    <td><div class="cell"><span class="status-cell" style="background:${ss.bg};color:${ss.color};cursor:pointer" onclick="cycleStatusPrazo(this)">${status}</span></div></td>
+  `;
+  const tbody = document.querySelector('#page-prazos tbody');
+  const lastRow = tbody.querySelector('tr:last-child');
+  tbody.insertBefore(newRow, lastRow || null);
+  fecharModalTarefa();
+  showToast('✓ Tarefa adicionada!');
+}
+function cycleStatusPrazo(el){
+  const cur = PRAZOS_CICLO.findIndex(s=>s.txt===el.textContent.trim());
+  const next = PRAZOS_CICLO[(cur+1)%PRAZOS_CICLO.length];
+  el.textContent=next.txt; el.style.background=next.bg; el.style.color=next.color;
+}
+
+// ─── EXPORTAR DADOS ───
+async function exportarDados(){
+  const btn = document.querySelector('[onclick="exportarDados()"]');
+  if(btn) btn.title='Exportando...';
+  const [resProc, resAt] = await Promise.all([
+    supa.from('processos').select('*'),
+    supa.from('atendimentos').select('*')
+  ]);
+  const backup = {
+    exportadoEm: new Date().toISOString(),
+    sistema: 'JusTax CRM',
+    processos: resProc.data || [],
+    atendimentos: resAt.data || [],
+  };
+  const json = JSON.stringify(backup, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const dt = new Date().toISOString().slice(0,10);
+  a.download = `justax-backup-${dt}.json`;
+  a.click();
+  if(btn) btn.title='Exportar todos os dados (backup JSON)';
+  showToast(`✓ Backup exportado: ${(resProc.data||[]).length} processos, ${(resAt.data||[]).length} atendimentos`);
+}
+
+// ─── TOAST HELPER ───
+function showToast(msg, color){
+  const t = document.createElement('div');
+  t.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:${color||'#059669'};color:#fff;padding:10px 22px;border-radius:8px;font-size:0.85rem;z-index:9999;font-weight:600;white-space:nowrap`;
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 3000);
 }
 
 async function importarPrazo(nome, data, processo){

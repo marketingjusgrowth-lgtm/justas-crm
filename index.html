@@ -1487,11 +1487,19 @@ async function buscarDatajud(){
 
   try {
     const res = await supa.functions.invoke('datajud-proxy', {body:{numero}});
-    const data = res.data;
     btn.textContent='Buscar'; btn.disabled=false;
 
+    if(res.error){
+      const msg = res.error.message || res.error.context?.message || JSON.stringify(res.error);
+      result.innerHTML=`<div style="color:var(--red);padding:16px;background:var(--red-bg);border-radius:8px">❌ ${msg}</div>`;
+      return;
+    }
+
+    const data = res.data;
+
     if(data?.error){
-      result.innerHTML=`<div style="color:var(--red);padding:16px;background:var(--red-bg);border-radius:8px">❌ ${data.error}</div>`;
+      const errMsg = typeof data.error === 'string' ? data.error : (data.error.message || JSON.stringify(data.error));
+      result.innerHTML=`<div style="color:var(--red);padding:16px;background:var(--red-bg);border-radius:8px">❌ ${errMsg}</div>`;
       return;
     }
 

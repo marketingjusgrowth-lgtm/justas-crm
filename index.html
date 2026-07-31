@@ -858,65 +858,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
                 <th>Status</th>
               </tr>
             </thead>
-            <tbody>
-              <tr><td colspan="11" style="padding:0;border:none">
-                <div class="group-header">
-                  <div class="group-dot" style="background:#DC2626"></div>
-                  <span class="group-name">PRAZOS URGENTES</span>
-                  <span class="group-count">2</span>
-                  <span class="group-toggle">▾</span>
-                </div>
-              </td></tr>
-              <tr style="background:#FFF5F5">
-                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
-                <td><div class="cell" style="font-weight:700;color:var(--blue);font-size:0.77rem">0001234-12.2025.3.00.0001</div></td>
-                <td><div class="cell"><div class="av av-sm" style="background:#2563EB">JA</div>João Alves</div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--purple-bg);color:var(--purple)">Tributário</span></div></td>
-                <td><div class="cell cell-muted">STJ</div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--blue-mid);color:#1D4ED8">Recursal</span></div></td>
-                <td><div class="cell"><span class="p-tag p-urgent">HOJE</span></div></td>
-                <td><div class="cell cell-muted" style="font-size:0.77rem">Agravo Regimental</div></td>
-                <td><div class="cell"><span class="epoc-badge" style="font-size:0.68rem">✓ Sync</span></div></td>
-                <td><div class="cell"><div class="av av-sm" style="background:#2563EB">GR</div></div></td>
-                <td><div class="cell"><span class="status-cell" style="background:#DBEAFE;color:#1D4ED8">Em andamento</span></div></td>
-              </tr>
-              <tr style="background:#FFF5F5">
-                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
-                <td><div class="cell" style="font-weight:700;color:var(--blue);font-size:0.77rem">0002345-33.2025.5.02.0001</div></td>
-                <td><div class="cell"><div class="av av-sm" style="background:#059669">AC</div>Ana Costa</div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--green-bg);color:var(--green)">Trabalhista</span></div></td>
-                <td><div class="cell cell-muted">TRT-SP</div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--yellow-bg);color:var(--yellow)">Instrução</span></div></td>
-                <td><div class="cell"><span class="p-tag p-urgent">1 dia</span></div></td>
-                <td><div class="cell cell-muted" style="font-size:0.77rem">Contestação</div></td>
-                <td><div class="cell"><span class="epoc-badge" style="font-size:0.68rem">✓ Sync</span></div></td>
-                <td><div class="cell"><div class="av av-sm" style="background:#059669">AL</div></div></td>
-                <td><div class="cell"><span class="status-cell" style="background:#DBEAFE;color:#1D4ED8">Em andamento</span></div></td>
-              </tr>
-              <tr><td colspan="11" style="padding:0;border:none">
-                <div class="group-header">
-                  <div class="group-dot" style="background:#2563EB"></div>
-                  <span class="group-name">EM ANDAMENTO</span>
-                  <span class="group-count">3</span>
-                  <span class="group-toggle">▾</span>
-                </div>
-              </td></tr>
-              <tr>
-                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
-                <td><div class="cell" style="font-weight:700;color:var(--blue);font-size:0.77rem">0003456-44.2025.8.26.0100</div></td>
-                <td><div class="cell"><div class="av av-sm" style="background:#7C3AED">AC</div>Ana Carolina</div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--blue-mid);color:#1D4ED8">Família</span></div></td>
-                <td><div class="cell cell-muted">TJSP</div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--purple-bg);color:var(--purple)">Recursal</span></div></td>
-                <td><div class="cell"><span class="p-tag p-warn">3 dias</span></div></td>
-                <td><div class="cell cell-muted" style="font-size:0.77rem">Recurso Inominado</div></td>
-                <td><div class="cell"><span class="epoc-badge" style="font-size:0.68rem">✓ Sync</span></div></td>
-                <td><div class="cell"><div class="av av-sm" style="background:#059669">AL</div></div></td>
-                <td><div class="cell"><span class="status-cell" style="background:#DBEAFE;color:#1D4ED8">Em andamento</span></div></td>
-              </tr>
-              <tr><td colspan="11" style="padding:0">
-                <div class="add-row" onclick="openModal('processo')">+ Adicionar processo</div>
-              </td></tr>
+            <tbody id="proc-tbody">
+              <tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted)">Carregando processos...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1150,6 +1093,42 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
   </div>
 </div>
 
+<!-- SALVAR NO CRM MODAL -->
+<div id="salvar-crm-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:4000;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--card);border-radius:14px;padding:24px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,0.2)">
+    <h2 style="font-size:1rem;font-weight:700;margin-bottom:4px">Salvar Processo no CRM</h2>
+    <p id="salvar-crm-num" style="font-size:0.8rem;color:var(--text-muted);margin-bottom:16px"></p>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px">Número</label>
+        <input id="sc-numero" type="text" readonly style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.85rem;background:var(--sidebar);color:var(--text-muted);font-family:inherit;box-sizing:border-box"/>
+      </div>
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px">Tribunal</label>
+        <input id="sc-tribunal" type="text" readonly style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.85rem;background:var(--sidebar);color:var(--text-muted);font-family:inherit;box-sizing:border-box"/>
+      </div>
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px">Área</label>
+        <select id="sc-area" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.85rem;font-family:inherit;background:var(--card);color:var(--text);box-sizing:border-box">
+          <option>Cível</option><option>Trabalhista</option><option>Tributário</option><option>Família</option><option>Criminal</option><option>Previdenciário</option><option>Ambiental</option><option>Empresarial</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px">Cliente *</label>
+        <input id="sc-cliente" type="text" placeholder="Nome do cliente" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.85rem;font-family:inherit;background:var(--card);color:var(--text);outline:none;box-sizing:border-box"/>
+      </div>
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px">Ação Requerida</label>
+        <input id="sc-acao" type="text" placeholder="Ex: Petição inicial, Contestação..." style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.85rem;font-family:inherit;background:var(--card);color:var(--text);outline:none;box-sizing:border-box"/>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end">
+      <button onclick="fecharSalvarCRM()" style="padding:8px 18px;border:1.5px solid var(--border);border-radius:8px;background:transparent;color:var(--text);cursor:pointer;font-size:0.85rem">Cancelar</button>
+      <button id="sc-btn" onclick="confirmarSalvarCRM()" class="btn btn-blue" style="padding:8px 20px">Salvar no CRM</button>
+    </div>
+  </div>
+</div>
+
 <!-- EPROC TOAST -->
 <div id="eproc-toast" style="display:none;position:fixed;bottom:24px;right:24px;background:#0F172A;color:#fff;padding:12px 18px;border-radius:10px;font-size:0.83rem;z-index:9998;display:none;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(0,0,0,0.3)">
   <span class="epoc-badge">E-proc</span>
@@ -1186,7 +1165,10 @@ function showLoginError(msg){
   el.textContent = msg;
 }
 
+let currentUser = null;
+
 function enterApp(user){
+  currentUser = user;
   const meta = user.user_metadata || {};
   const nome = meta.nome || user.email.split('@')[0];
   const iniciais = meta.iniciais || nome.slice(0,2).toUpperCase();
@@ -1198,6 +1180,7 @@ function enterApp(user){
   document.getElementById('user-av').style.background = cor;
   document.getElementById('user-name').textContent = nome;
   document.getElementById('user-role').textContent = cargo;
+  carregarProcessos();
 }
 
 function loginAs(name,initials,color,role){
@@ -1540,6 +1523,11 @@ async function buscarDatajud(){
           <div><span style="color:var(--text-muted)">Última atualização:</span> <strong>${fmtData(src.dataHoraUltimaAtualizacao)}</strong></div>
         </div>
         ${src.assuntos?.length?`<div style="margin-top:8px;font-size:0.78rem;color:var(--text-muted)">Assunto: <strong style="color:var(--text)">${src.assuntos[0].nome}</strong></div>`:''}
+        <div style="margin-top:12px">
+          <button onclick="abrirSalvarCRM(${JSON.stringify({fmt:data._fmt,tribunal,classe:src.classe?.nome||'',orgao:src.orgaoJulgador?.nome||''}).replace(/"/g,'&quot;')})" style="width:100%;padding:9px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer">
+            + Salvar no CRM
+          </button>
+        </div>
       </div>
       <div style="font-weight:700;font-size:0.82rem;margin-bottom:8px">Últimas movimentações</div>
       ${movHtml}
@@ -1548,6 +1536,107 @@ async function buscarDatajud(){
     btn.textContent='Buscar'; btn.disabled=false;
     result.innerHTML=`<div style="color:var(--red);padding:16px;background:var(--red-bg);border-radius:8px">❌ Erro: ${e.message}</div>`;
   }
+}
+
+// ─── PROCESSOS SUPABASE ───
+let _djDados = null;
+
+function abrirSalvarCRM(dados) {
+  _djDados = dados;
+  document.getElementById('sc-numero').value   = dados.fmt || '';
+  document.getElementById('sc-tribunal').value = dados.tribunal || '';
+  document.getElementById('sc-acao').value     = '';
+  document.getElementById('sc-cliente').value  = '';
+  // mapeia classe DataJud → área
+  const cls = (dados.classe||'').toLowerCase();
+  const areaMap = [
+    ['trabalhist','Trabalhista'],['civil','Cível'],['cível','Cível'],['família','Família'],
+    ['famil','Família'],['tributár','Tributário'],['tribut','Tributário'],
+    ['criminal','Criminal'],['penal','Criminal'],['previdenc','Previdenciário'],
+    ['ambiental','Ambiental'],['empresar','Empresarial']
+  ];
+  const area = (areaMap.find(([k])=>cls.includes(k)) || ['','Cível'])[1];
+  const sel = document.getElementById('sc-area');
+  for(let i=0;i<sel.options.length;i++) if(sel.options[i].value===area) sel.selectedIndex=i;
+  document.getElementById('salvar-crm-overlay').style.display='flex';
+  setTimeout(()=>document.getElementById('sc-cliente').focus(), 50);
+}
+
+function fecharSalvarCRM() {
+  document.getElementById('salvar-crm-overlay').style.display='none';
+  _djDados = null;
+}
+
+async function confirmarSalvarCRM() {
+  const cliente = document.getElementById('sc-cliente').value.trim();
+  if(!cliente){ document.getElementById('sc-cliente').style.borderColor='var(--red)'; return; }
+  const btn = document.getElementById('sc-btn');
+  btn.textContent='Salvando...'; btn.disabled=true;
+  const {error} = await supa.from('processos').insert({
+    numero:         _djDados.fmt,
+    cliente_nome:   cliente,
+    area:           document.getElementById('sc-area').value,
+    tribunal:       _djDados.tribunal,
+    fase:           'Conhecimento',
+    status:         'Em andamento',
+    acao_requerida: document.getElementById('sc-acao').value.trim(),
+    origem:         'datajud'
+  });
+  btn.textContent='Salvar no CRM'; btn.disabled=false;
+  if(error){ alert('Erro ao salvar: '+error.message); return; }
+  fecharSalvarCRM();
+  closeDatajud();
+  carregarProcessos();
+  const toast = document.createElement('div');
+  toast.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#059669;color:#fff;padding:10px 22px;border-radius:8px;font-size:0.85rem;z-index:9999;font-weight:600';
+  toast.textContent='✓ Processo salvo no CRM!';
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.remove(), 3000);
+}
+
+const AREA_COLORS = {
+  'Cível':         {bg:'#EFF6FF',color:'#1D4ED8'},
+  'Trabalhista':   {bg:'#ECFDF5',color:'#059669'},
+  'Tributário':    {bg:'#F5F3FF',color:'#7C3AED'},
+  'Família':       {bg:'#EFF6FF',color:'#1D4ED8'},
+  'Criminal':      {bg:'#FFF1F2',color:'#BE123C'},
+  'Previdenciário':{bg:'#FFFBEB',color:'#D97706'},
+  'Ambiental':     {bg:'#ECFDF5',color:'#059669'},
+  'Empresarial':   {bg:'#F5F3FF',color:'#7C3AED'},
+};
+
+function initials(name) {
+  return (name||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+}
+
+async function carregarProcessos() {
+  const tbody = document.getElementById('proc-tbody');
+  if(!tbody) return;
+  tbody.innerHTML='<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted)">Carregando...</td></tr>';
+  const {data, error} = await supa.from('processos').select('*').order('created_at', {ascending:false});
+  if(error || !data || data.length===0){
+    tbody.innerHTML='<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted)">Nenhum processo cadastrado. Use "Buscar DataJud" ou "+ Novo Processo".</td></tr>';
+    return;
+  }
+  const rows = data.map(p=>{
+    const cor = AREA_COLORS[p.area] || {bg:'#F1F5F9',color:'#475569'};
+    const av  = initials(p.cliente_nome);
+    const avBg = ['#2563EB','#059669','#7C3AED','#D97706','#BE123C'][av.charCodeAt(0)%5];
+    return `<tr>
+      <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
+      <td><div class="cell" style="font-weight:700;color:var(--blue);font-size:0.77rem">${p.numero}</div></td>
+      <td><div class="cell"><div class="av av-sm" style="background:${avBg}">${av}</div>${p.cliente_nome||'—'}</div></td>
+      <td><div class="cell"><span class="badge" style="background:${cor.bg};color:${cor.color}">${p.area||'—'}</span></div></td>
+      <td><div class="cell cell-muted">${p.tribunal||'—'}</div></td>
+      <td><div class="cell"><span class="badge" style="background:var(--blue-mid);color:#1D4ED8">${p.fase||'—'}</span></div></td>
+      <td><div class="cell">—</div></td>
+      <td><div class="cell cell-muted" style="font-size:0.77rem">${p.acao_requerida||'—'}</div></td>
+      <td><div class="cell">${p.origem==='datajud'?'<span class="epoc-badge" style="font-size:0.68rem">✓ DataJud</span>':'—'}</div></td>
+      <td><div class="cell"><div class="av av-sm" style="background:var(--blue)">${initials(currentUser?.email)}</div></div></td>
+      <td><div class="cell"><span class="status-cell" style="background:#DBEAFE;color:#1D4ED8">${p.status||'—'}</span></div></td>
+    </tr>`;
+  }).join('');
+  tbody.innerHTML = rows + `<tr><td colspan="11" style="padding:0"><div class="add-row" onclick="openModal('processo')">+ Adicionar processo</div></td></tr>`;
 }
 
 async function importarPrazo(nome, data, processo){

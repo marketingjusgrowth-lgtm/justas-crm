@@ -1510,7 +1510,9 @@ async function buscarDatajud(){
     }
 
     const src = hits[0]._source;
-    const tribunal = (TJ_NOME[data._index] || data._index || '').toUpperCase();
+    const indexKey = (data._index||'').replace('api_publica_','');
+    const tribunal = TJ_NOME[indexKey] || indexKey.toUpperCase().replace('TRF','TRF-').replace('TRT','TRT-');
+    const fmtData = (s) => { if(!s) return '—'; const d = new Date(s.length===10 ? s+'T12:00:00' : s); return isNaN(d) ? s.slice(0,10).split('-').reverse().join('/') : d.toLocaleDateString('pt-BR'); };
     const movimentos = (src.movimentos || []).slice(0,15);
 
     const movHtml = movimentos.map((m)=>{
@@ -1534,8 +1536,8 @@ async function buscarDatajud(){
           <div><span style="color:var(--text-muted)">Tribunal:</span> <strong>${tribunal}</strong></div>
           <div><span style="color:var(--text-muted)">Classe:</span> <strong>${src.classe?.nome||'—'}</strong></div>
           <div><span style="color:var(--text-muted)">Órgão:</span> <strong>${src.orgaoJulgador?.nome||'—'}</strong></div>
-          <div><span style="color:var(--text-muted)">Ajuizamento:</span> <strong>${src.dataAjuizamento?new Date(src.dataAjuizamento).toLocaleDateString('pt-BR'):'—'}</strong></div>
-          <div><span style="color:var(--text-muted)">Última atualização:</span> <strong>${src.dataHoraUltimaAtualizacao?new Date(src.dataHoraUltimaAtualizacao).toLocaleDateString('pt-BR'):'—'}</strong></div>
+          <div><span style="color:var(--text-muted)">Ajuizamento:</span> <strong>${fmtData(src.dataAjuizamento)}</strong></div>
+          <div><span style="color:var(--text-muted)">Última atualização:</span> <strong>${fmtData(src.dataHoraUltimaAtualizacao)}</strong></div>
         </div>
         ${src.assuntos?.length?`<div style="margin-top:8px;font-size:0.78rem;color:var(--text-muted)">Assunto: <strong style="color:var(--text)">${src.assuntos[0].nome}</strong></div>`:''}
       </div>

@@ -1623,11 +1623,12 @@ async function carregarProcessos() {
     tbody.innerHTML='<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted)">Nenhum processo cadastrado. Use "Buscar DataJud" ou "+ Novo Processo".</td></tr>';
     return;
   }
+  console.log('processos recebidos:', data.length, data);
   const rows = data.map(p=>{
     const cor = AREA_COLORS[p.area] || {bg:'#F1F5F9',color:'#475569'};
     const av  = initials(p.cliente_nome);
     const avBg = ['#2563EB','#059669','#7C3AED','#D97706','#BE123C'][av.charCodeAt(0)%5];
-    return `<tr>
+    return `<tr style="border-bottom:1px solid var(--border)">
       <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
       <td><div class="cell" style="font-weight:700;color:var(--blue);font-size:0.77rem">${p.numero}</div></td>
       <td><div class="cell"><div class="av av-sm" style="background:${avBg}">${av}</div>${p.cliente_nome||'—'}</div></td>

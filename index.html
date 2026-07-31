@@ -836,7 +836,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
           <div class="filter-chip">Área</div>
           <div class="filter-chip">Tribunal</div>
           <div class="filter-chip active"><span class="epoc-badge" style="padding:1px 7px;font-size:0.7rem">E-proc</span> Sincronizado</div>
-          <div style="margin-left:auto;display:flex;gap:8px">
+          <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+            <span id="proc-count" style="font-size:0.78rem;color:var(--text-muted)"></span>
+            <button class="btn btn-ghost btn-sm" onclick="carregarProcessos()">↺ Recarregar</button>
             <button class="btn btn-ghost btn-sm" onclick="openDatajud()">🔍 Buscar DataJud</button>
             <button class="btn btn-blue btn-sm" onclick="openModal('processo')">+ Novo Processo</button>
           </div>
@@ -1614,11 +1616,13 @@ async function carregarProcessos() {
   if(!tbody) return;
   tbody.innerHTML='<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted)">Carregando...</td></tr>';
   const {data, error} = await supa.from('processos').select('*');
+  const countEl = document.getElementById('proc-count');
   if(error){
-    console.error('Erro processos:', error);
-    tbody.innerHTML=`<tr><td colspan="11" style="text-align:center;padding:30px;color:red">Erro: ${error.message}</td></tr>`;
+    if(countEl) countEl.textContent = 'Erro: '+error.message;
+    tbody.innerHTML=`<tr><td colspan="11" style="text-align:center;padding:20px;color:red;font-size:0.85rem">Erro ao carregar: ${error.message}</td></tr>`;
     return;
   }
+  if(countEl) countEl.textContent = (data?.length||0)+' processo(s)';
   if(!data || data.length===0){
     tbody.innerHTML='<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted)">Nenhum processo cadastrado. Use "Buscar DataJud" ou "+ Novo Processo".</td></tr>';
     return;

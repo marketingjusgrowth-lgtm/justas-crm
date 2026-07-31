@@ -2444,7 +2444,7 @@ async function salvarProcesso(){
   }
   if(err){ alert('Erro ao salvar: '+err.message); return; }
   if(!_procEditId){
-    await supa.from('prazos').insert({
+    const {error: errPrazo} = await supa.from('prazos').insert({
       titulo: 'Acompanhamento inicial — '+cliente,
       processo_numero: document.getElementById('pm-numero').value.trim()||null,
       cliente_nome: cliente,
@@ -2452,12 +2452,13 @@ async function salvarProcesso(){
       prioridade: 'media',
       status: 'Pendente',
       origem: 'processo',
-      user_id: currentUser?.id
+      user_id: currentUser?.id||null
     });
+    if(errPrazo) console.warn('Prazo não criado automaticamente:', errPrazo.message);
   }
   fecharModalProcesso();
   carregarProcessos();
-  showToast('✓ Processo salvo!');
+  showToast('✓ Processo salvo! Verifique Prazos & Tarefas.');
 }
 
 async function excluirProcessoCRM(){

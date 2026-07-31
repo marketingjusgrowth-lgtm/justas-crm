@@ -933,6 +933,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
             <span id="proc-count" style="font-size:0.78rem;color:var(--text-muted)"></span>
             <button class="btn btn-ghost btn-sm" onclick="carregarProcessos()">↺ Recarregar</button>
             <button class="btn btn-ghost btn-sm" onclick="openDatajud()">🔍 Buscar DataJud</button>
+            <button class="btn btn-ghost btn-sm" onclick="sincronizarProcessosComPrazos()" title="Criar tarefas em Prazos para processos sem tarefa">↔ Sincronizar Prazos</button>
             <button class="btn btn-blue btn-sm" onclick="openModal('processo')">+ Novo Processo</button>
           </div>
         </div>
@@ -1324,6 +1325,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
       </div>
     </div>
     <div class="modal-foot">
+      <input type="hidden" id="tar-edit-id"/>
+      <button id="tar-btn-excluir" style="display:none;margin-right:auto" class="btn" onclick="excluirTarefa()">🗑 Excluir</button>
       <button class="btn btn-ghost" onclick="fecharModalTarefa()">Cancelar</button>
       <button class="btn btn-blue" onclick="salvarTarefa()">Salvar</button>
     </div>
@@ -1384,6 +1387,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
       <button id="sc-btn" onclick="confirmarSalvarCRM()" class="btn btn-blue" style="padding:8px 20px">Salvar no CRM</button>
     </div>
   </div>
+</div>
+
+<!-- BULK ACTION BAR -->
+<div id="bulk-bar" style="display:none;position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#0F172A;color:#fff;padding:12px 20px;border-radius:14px;z-index:9999;align-items:center;gap:14px;box-shadow:0 8px 40px rgba(0,0,0,0.35);white-space:nowrap">
+  <span id="bulk-count" style="font-size:0.85rem;font-weight:600;color:#94A3B8"></span>
+  <button onclick="concluirSelecionados()" id="bulk-btn-concluir" style="background:#059669;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:0.82rem;font-weight:600;cursor:pointer">✓ Concluir</button>
+  <button onclick="excluirSelecionados()" style="background:#EF4444;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:0.82rem;font-weight:600;cursor:pointer">🗑 Excluir</button>
+  <button onclick="limparSelecao()" style="background:transparent;color:#64748B;border:none;font-size:1.2rem;cursor:pointer;line-height:1;padding:0 2px">✕</button>
 </div>
 
 <!-- EPROC TOAST -->
@@ -1891,8 +1902,8 @@ async function carregarProcessos() {
     const cor = AREA_COLORS[p.area] || {bg:'#F1F5F9',color:'#475569'};
     const av  = initials(p.cliente_nome||'?');
     const avBg = ['#2563EB','#059669','#7C3AED','#D97706','#BE123C'][(av.charCodeAt(0)||0)%5];
-    return `<tr>
-      <td><div class="cell" style="justify-content:center"><input type="checkbox"/></div></td>
+    return `<tr data-id="${p.id}" style="cursor:pointer" onclick="abrirModalProcesso('${p.id}')">
+      <td onclick="event.stopPropagation()"><div class="cell" style="justify-content:center"><input type="checkbox" onchange="atualizarBarraAcoes()" onclick="event.stopPropagation()"/></div></td>
       <td><div class="cell" style="font-weight:700;color:#2563EB;font-size:0.77rem">${p.numero||'—'}</div></td>
       <td><div class="cell"><span style="width:26px;height:26px;border-radius:50%;background:${avBg};color:#fff;font-size:0.68rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${av}</span>${p.cliente_nome||'—'}</div></td>
       <td><div class="cell"><span style="padding:2px 8px;border-radius:5px;font-size:0.75rem;font-weight:600;background:${cor.bg};color:${cor.color}">${p.area||'—'}</span></div></td>
@@ -2223,6 +2234,123 @@ async function carregarRelatorios(){
     </div>`).join('') || '<span style="color:var(--text-muted);font-size:0.82rem">Nenhum atendimento registrado</span>';
 }
 
+// ─── BULK ACTIONS ───
+function atualizarBarraAcoes(){
+  const checks = [...document.querySelectorAll('.page.active tbody input[type=checkbox]:checked')];
+  const bar = document.getElementById('bulk-bar');
+  const pageId = document.querySelector('.page.active')?.id||'';
+  const btnConcluir = document.getElementById('bulk-btn-concluir');
+  if(checks.length>0){
+    bar.style.display='flex';
+    document.getElementById('bulk-count').textContent = checks.length+' selecionado(s)';
+    if(btnConcluir) btnConcluir.style.display = pageId==='page-prazos' ? '' : 'none';
+  } else {
+    bar.style.display='none';
+  }
+}
+function limparSelecao(){
+  document.querySelectorAll('.page.active tbody input[type=checkbox]').forEach(c=>c.checked=false);
+  document.getElementById('bulk-bar').style.display='none';
+}
+async function excluirSelecionados(){
+  const page = document.querySelector('.page.active');
+  if(!page) return;
+  const rows = [...page.querySelectorAll('tbody tr[data-id]')].filter(r=>r.querySelector('input[type=checkbox]:checked'));
+  if(!rows.length) return;
+  if(!confirm(`Excluir ${rows.length} item(s) selecionado(s)? Esta ação não pode ser desfeita.`)) return;
+  const ids = rows.map(r=>r.dataset.id);
+  const table = page.id==='page-processos' ? 'processos' : page.id==='page-prazos' ? 'prazos' : null;
+  if(!table) return;
+  const {error} = await supa.from(table).delete().in('id',ids);
+  if(error){ alert('Erro ao excluir: '+error.message); return; }
+  limparSelecao();
+  if(table==='processos') carregarProcessos();
+  else carregarPrazos();
+  showToast(`✓ ${ids.length} item(s) excluído(s)`,'#EF4444');
+}
+async function concluirSelecionados(){
+  const page = document.querySelector('.page.active');
+  if(!page||page.id!=='page-prazos') return;
+  const rows = [...page.querySelectorAll('tbody tr[data-id]')].filter(r=>r.querySelector('input[type=checkbox]:checked'));
+  if(!rows.length) return;
+  const ids = rows.map(r=>r.dataset.id);
+  await supa.from('prazos').update({status:'Concluído'}).in('id',ids);
+  limparSelecao();
+  carregarPrazos();
+  showToast(`✓ ${ids.length} tarefa(s) concluída(s)`);
+}
+
+// ─── EDITAR PRAZO ───
+async function editarPrazo(id){
+  const {data,error} = await supa.from('prazos').select('*').eq('id',id).single();
+  if(error||!data) return;
+  document.getElementById('tarefa-modal-titulo').textContent='Editar Tarefa';
+  document.getElementById('tar-edit-id').value = id;
+  document.getElementById('tar-titulo').value   = data.titulo||'';
+  document.getElementById('tar-processo').value = data.processo_numero||'';
+  document.getElementById('tar-cliente').value  = data.cliente_nome||'';
+  document.getElementById('tar-data').value     = data.data_prazo||'';
+  const setSelect=(eid,val)=>{const s=document.getElementById(eid);for(let i=0;i<s.options.length;i++)if(s.options[i].value===val||s.options[i].text===val)s.selectedIndex=i;};
+  setSelect('tar-tipo', data.tipo||'Outro');
+  setSelect('tar-prioridade', data.prioridade||'media');
+  setSelect('tar-resp', data.responsavel||'Gustavo Rafael');
+  setSelect('tar-status', data.status||'Pendente');
+  document.getElementById('tar-btn-excluir').style.display='inline-flex';
+  document.getElementById('tarefa-overlay').style.display='flex';
+}
+function abrirModalTarefa(processoNumero, clienteNome){
+  document.getElementById('tarefa-modal-titulo').textContent='Nova Tarefa';
+  document.getElementById('tar-edit-id').value='';
+  document.getElementById('tar-btn-excluir').style.display='none';
+  ['tar-titulo','tar-processo','tar-cliente'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  if(processoNumero) document.getElementById('tar-processo').value=processoNumero;
+  if(clienteNome)   document.getElementById('tar-cliente').value=clienteNome;
+  document.getElementById('tar-data').value=new Date().toISOString().split('T')[0];
+  ['tar-tipo','tar-prioridade','tar-resp','tar-status'].forEach(i=>{const el=document.getElementById(i);if(el)el.selectedIndex=0;});
+  document.getElementById('tarefa-overlay').style.display='flex';
+  setTimeout(()=>document.getElementById('tar-titulo').focus(),50);
+}
+async function excluirTarefa(){
+  const id=document.getElementById('tar-edit-id').value;
+  if(!id||!confirm('Excluir esta tarefa?')) return;
+  const {error}=await supa.from('prazos').delete().eq('id',id);
+  if(error){alert('Erro: '+error.message);return;}
+  fecharModalTarefa();
+  carregarPrazos();
+  showToast('✓ Tarefa excluída','#EF4444');
+}
+
+// ─── SINCRONIZAR PROCESSOS → PRAZOS ───
+async function sincronizarProcessosComPrazos(){
+  const btn=document.querySelector('[onclick="sincronizarProcessosComPrazos()"]');
+  if(btn){btn.textContent='Sincronizando...';btn.disabled=true;}
+  const [{data:procs},{data:prazosExist}]=await Promise.all([
+    supa.from('processos').select('id,numero,cliente_nome'),
+    supa.from('prazos').select('processo_numero,cliente_nome').eq('origem','processo')
+  ]);
+  const existSet=new Set((prazosExist||[]).map(p=>p.processo_numero||p.cliente_nome));
+  const novos=(procs||[]).filter(p=>!existSet.has(p.numero||p.cliente_nome));
+  if(!novos.length){
+    if(btn){btn.textContent='↔ Sincronizar Prazos';btn.disabled=false;}
+    showToast('✓ Todos os processos já têm tarefa em Prazos');
+    return;
+  }
+  const inserts=novos.map(p=>({
+    titulo:'Acompanhamento inicial — '+(p.cliente_nome||'Cliente'),
+    processo_numero:p.numero||null,
+    cliente_nome:p.cliente_nome||null,
+    tipo:'Prazo Processual',
+    prioridade:'media',
+    status:'Pendente',
+    origem:'processo',
+    user_id:currentUser?.id||null
+  }));
+  const {error}=await supa.from('prazos').insert(inserts);
+  if(btn){btn.textContent='↔ Sincronizar Prazos';btn.disabled=false;}
+  if(error){alert('Erro: '+error.message);return;}
+  showToast(`✓ ${novos.length} processo(s) sincronizado(s) com Prazos`);
+}
+
 // ─── PRAZOS: CARREGAR DO SUPABASE ───
 const PRIO_STYLES = {
   urgente:{label:'🔥 Urgente',bg:'var(--red-bg)',color:'var(--red)'},
@@ -2302,7 +2430,7 @@ async function carregarPrazos(){
         ?'<span style="background:#2563EB;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.68rem;font-weight:600">✓ DataJud</span>'
         :(p.origem==='processo'?'<span style="background:#7C3AED;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.68rem;font-weight:600">Processo</span>':'Manual');
       html+=`<tr style="${rowBg}" data-id="${p.id}" data-grupo="${grupoNome}">
-        <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
+        <td onclick="event.stopPropagation()"><input type="checkbox" style="accent-color:var(--blue)" onchange="atualizarBarraAcoes()" onclick="event.stopPropagation()"/></td>
         <td><div class="cell cell-name">${p.titulo||'—'}</div></td>
         <td><div class="cell" style="font-size:0.77rem;color:var(--blue)">${p.processo_numero||'—'}</div></td>
         <td><div class="cell">${p.cliente_nome||'—'}</div></td>
@@ -2406,11 +2534,24 @@ function updateKanbanCounts(){
 
 // ─── PROCESSO MODAL ───
 let _procEditId = null;
-function abrirModalProcesso(id){
+async function abrirModalProcesso(id){
   _procEditId = id || null;
   document.getElementById('proc-modal-titulo').textContent = id ? 'Editar Processo' : 'Novo Processo';
   document.getElementById('pm-btn-excluir').style.display = id ? 'inline-flex' : 'none';
-  if(!id){
+  if(id){
+    const {data} = await supa.from('processos').select('*').eq('id',id).single();
+    if(data){
+      document.getElementById('pm-numero').value    = data.numero||'';
+      document.getElementById('pm-cliente').value   = data.cliente_nome||'';
+      document.getElementById('pm-tribunal').value  = data.tribunal||'';
+      document.getElementById('pm-acao').value      = data.acao_requerida||'';
+      document.getElementById('pm-obs').value       = data.observacoes||'';
+      const setSelect = (id, val) => { const s=document.getElementById(id); for(let i=0;i<s.options.length;i++) if(s.options[i].value===val||s.options[i].text===val) s.selectedIndex=i; };
+      setSelect('pm-area', data.area||'');
+      setSelect('pm-fase', data.fase||'Conhecimento');
+      setSelect('pm-status', data.status||'Em andamento');
+    }
+  } else {
     ['pm-numero','pm-cliente','pm-tribunal','pm-acao','pm-obs'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
     ['pm-area','pm-fase','pm-status','pm-resp'].forEach(i=>{const el=document.getElementById(i);if(el)el.selectedIndex=0;});
   }
@@ -2525,6 +2666,7 @@ function fecharModalTarefa(){
 async function salvarTarefa(){
   const titulo = document.getElementById('tar-titulo').value.trim();
   if(!titulo){ document.getElementById('tar-titulo').style.borderColor='var(--red)'; return; }
+  const editId = document.getElementById('tar-edit-id').value;
   const payload = {
     titulo,
     processo_numero: document.getElementById('tar-processo').value.trim()||null,
@@ -2534,14 +2676,19 @@ async function salvarTarefa(){
     prioridade:     document.getElementById('tar-prioridade').value,
     responsavel:    document.getElementById('tar-resp').value,
     status:         document.getElementById('tar-status').value,
-    origem:         'manual',
-    user_id:        currentUser?.id
   };
-  const {error} = await supa.from('prazos').insert(payload);
+  let error;
+  if(editId){
+    ({error} = await supa.from('prazos').update(payload).eq('id',editId));
+  } else {
+    payload.origem = 'manual';
+    payload.user_id = currentUser?.id||null;
+    ({error} = await supa.from('prazos').insert(payload));
+  }
   if(error){ alert('Erro ao salvar: '+error.message); return; }
   fecharModalTarefa();
   carregarPrazos();
-  showToast('✓ Tarefa adicionada!');
+  showToast(editId ? '✓ Tarefa atualizada!' : '✓ Tarefa adicionada!');
 }
 
 // ─── EXPORTAR DADOS ───

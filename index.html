@@ -1497,6 +1497,30 @@ function openModal(type){
 function closeModal(){document.getElementById('modal').classList.remove('open')}
 function closeModalOut(e){if(e.target.id==='modal')closeModal()}
 
+// ─── GLOBAL CHECKBOX DELEGATION (Clientes, Prazos, Processos) ───
+document.addEventListener('change', e=>{
+  if(e.target.type==='checkbox' && e.target.closest('tbody')){
+    atualizarBarraAcoes();
+  }
+});
+
+// ─── PIPELINE: X button on cards ───
+function initKanbanCardActions(){
+  document.querySelectorAll('.k-card').forEach(card=>{
+    if(card.querySelector('.k-del-btn')) return;
+    card.style.position='relative';
+    const btn=document.createElement('button');
+    btn.className='k-del-btn';
+    btn.innerHTML='✕';
+    btn.style.cssText='position:absolute;top:5px;right:5px;background:rgba(239,68,68,0.1);border:none;color:#EF4444;cursor:pointer;font-size:0.75rem;padding:2px 5px;border-radius:4px;display:none;line-height:1;font-weight:700';
+    btn.onclick=e=>{ e.stopPropagation(); if(confirm('Excluir este card?')){ card.remove(); updateKanbanCounts(); }};
+    card.addEventListener('mouseenter',()=>btn.style.display='block');
+    card.addEventListener('mouseleave',()=>btn.style.display='none');
+    card.appendChild(btn);
+  });
+}
+initKanbanCardActions();
+
 // ─── KANBAN DnD ───
 let dragging=null;
 document.querySelectorAll('.k-card').forEach(c=>{
@@ -2255,18 +2279,28 @@ function limparSelecao(){
 async function excluirSelecionados(){
   const page = document.querySelector('.page.active');
   if(!page) return;
-  const rows = [...page.querySelectorAll('tbody tr[data-id]')].filter(r=>r.querySelector('input[type=checkbox]:checked'));
-  if(!rows.length) return;
-  if(!confirm(`Excluir ${rows.length} item(s) selecionado(s)? Esta ação não pode ser desfeita.`)) return;
-  const ids = rows.map(r=>r.dataset.id);
-  const table = page.id==='page-processos' ? 'processos' : page.id==='page-prazos' ? 'prazos' : null;
-  if(!table) return;
-  const {error} = await supa.from(table).delete().in('id',ids);
-  if(error){ alert('Erro ao excluir: '+error.message); return; }
+  // Linhas dinâmicas (Supabase)
+  const dynRows = [...page.querySelectorAll('tbody tr[data-id]')].filter(r=>r.querySelector('input[type=checkbox]:checked'));
+  // Linhas estáticas (Clientes, etc — sem data-id)
+  const staticRows = [...page.querySelectorAll('tbody tr:not([data-id]):not(:has(.group-header)):not(:has(.add-row))')].filter(r=>r.querySelector('input[type=checkbox]:checked'));
+  const total = dynRows.length + staticRows.length;
+  if(!total) return;
+  if(!confirm(`Excluir ${total} item(s) selecionado(s)? Esta ação não pode ser desfeita.`)) return;
+  // Excluir estáticos do DOM
+  staticRows.forEach(r=>r.remove());
+  // Excluir dinâmicos do Supabase
+  if(dynRows.length){
+    const ids = dynRows.map(r=>r.dataset.id);
+    const table = page.id==='page-processos'?'processos':page.id==='page-prazos'?'prazos':null;
+    if(table){
+      const {error} = await supa.from(table).delete().in('id',ids);
+      if(error){ alert('Erro ao excluir: '+error.message); return; }
+      if(table==='processos') carregarProcessos();
+      else carregarPrazos();
+    }
+  }
   limparSelecao();
-  if(table==='processos') carregarProcessos();
-  else carregarPrazos();
-  showToast(`✓ ${ids.length} item(s) excluído(s)`,'#EF4444');
+  showToast(`✓ ${total} item(s) excluído(s)`,'#EF4444');
 }
 async function concluirSelecionados(){
   const page = document.querySelector('.page.active');
@@ -2342,8 +2376,7 @@ async function sincronizarProcessosComPrazos(){
     tipo:'Prazo Processual',
     prioridade:'media',
     status:'Pendente',
-    origem:'processo',
-    user_id:currentUser?.id||null
+    origem:'processo'
   }));
   const {error}=await supa.from('prazos').insert(inserts);
   if(btn){btn.textContent='↔ Sincronizar Prazos';btn.disabled=false;}
@@ -2592,10 +2625,9 @@ async function salvarProcesso(){
       tipo: 'Prazo Processual',
       prioridade: 'media',
       status: 'Pendente',
-      origem: 'processo',
-      user_id: currentUser?.id||null
+      origem: 'processo'
     });
-    if(errPrazo) console.warn('Prazo não criado automaticamente:', errPrazo.message);
+    if(errPrazo) showToast('⚠ Processo salvo, mas prazo não criado: '+errPrazo.message,'#D97706');
   }
   fecharModalProcesso();
   carregarProcessos();
@@ -2653,15 +2685,11 @@ function filtrarPrazos(tipo, chip){
   });
 }
 
-// ─── TAREFA MODAL ───
-function abrirModalTarefa(){
-  ['tar-titulo','tar-processo','tar-cliente'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
-  document.getElementById('tar-data').value = new Date().toISOString().split('T')[0];
-  document.getElementById('tarefa-overlay').style.display='flex';
-  setTimeout(()=>document.getElementById('tar-titulo').focus(),50);
-}
+// ─── TAREFA MODAL (fechar) ───
 function fecharModalTarefa(){
   document.getElementById('tarefa-overlay').style.display='none';
+  document.getElementById('tar-edit-id').value='';
+  document.getElementById('tar-btn-excluir').style.display='none';
 }
 async function salvarTarefa(){
   const titulo = document.getElementById('tar-titulo').value.trim();

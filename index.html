@@ -1627,23 +1627,22 @@ async function carregarProcessos() {
     tbody.innerHTML='<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted)">Nenhum processo cadastrado. Use "Buscar DataJud" ou "+ Novo Processo".</td></tr>';
     return;
   }
-  const td = 'style="padding:8px 12px;font-size:0.82rem;border-bottom:1px solid #e5e7eb;vertical-align:middle"';
   const rows = data.map(p=>{
     const cor = AREA_COLORS[p.area] || {bg:'#F1F5F9',color:'#475569'};
     const av  = initials(p.cliente_nome||'?');
     const avBg = ['#2563EB','#059669','#7C3AED','#D97706','#BE123C'][(av.charCodeAt(0)||0)%5];
     return `<tr>
-      <td ${td}><input type="checkbox"/></td>
-      <td ${td} style="padding:8px 12px;font-size:0.82rem;border-bottom:1px solid #e5e7eb;vertical-align:middle;font-weight:700;color:#2563EB">${p.numero||'—'}</td>
-      <td ${td}><span style="display:inline-flex;align-items:center;gap:6px"><span style="width:26px;height:26px;border-radius:50%;background:${avBg};color:#fff;font-size:0.68rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center">${av}</span>${p.cliente_nome||'—'}</span></td>
-      <td ${td}><span style="padding:2px 8px;border-radius:5px;font-size:0.75rem;font-weight:600;background:${cor.bg};color:${cor.color}">${p.area||'—'}</span></td>
-      <td ${td} style="padding:8px 12px;font-size:0.82rem;border-bottom:1px solid #e5e7eb;vertical-align:middle;color:#6b7280">${p.tribunal||'—'}</td>
-      <td ${td}><span style="padding:2px 8px;border-radius:5px;font-size:0.75rem;background:#DBEAFE;color:#1D4ED8">${p.fase||'—'}</span></td>
-      <td ${td}>—</td>
-      <td ${td} style="padding:8px 12px;font-size:0.77rem;border-bottom:1px solid #e5e7eb;vertical-align:middle;color:#6b7280">${p.acao_requerida||'—'}</td>
-      <td ${td}>${p.origem==='datajud'?'<span style="background:#2563EB;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.68rem;font-weight:600">✓ DataJud</span>':'—'}</td>
-      <td ${td}>—</td>
-      <td ${td}><span style="padding:3px 10px;border-radius:5px;font-size:0.78rem;background:#DBEAFE;color:#1D4ED8">${p.status||'—'}</span></td>
+      <td><div class="cell" style="justify-content:center"><input type="checkbox"/></div></td>
+      <td><div class="cell" style="font-weight:700;color:#2563EB;font-size:0.77rem">${p.numero||'—'}</div></td>
+      <td><div class="cell"><span style="width:26px;height:26px;border-radius:50%;background:${avBg};color:#fff;font-size:0.68rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${av}</span>${p.cliente_nome||'—'}</div></td>
+      <td><div class="cell"><span style="padding:2px 8px;border-radius:5px;font-size:0.75rem;font-weight:600;background:${cor.bg};color:${cor.color}">${p.area||'—'}</span></div></td>
+      <td><div class="cell cell-muted">${p.tribunal||'—'}</div></td>
+      <td><div class="cell"><span style="padding:2px 8px;border-radius:5px;font-size:0.75rem;background:#DBEAFE;color:#1D4ED8">${p.fase||'—'}</span></div></td>
+      <td><div class="cell">—</div></td>
+      <td><div class="cell cell-muted" style="font-size:0.77rem">${p.acao_requerida||'—'}</div></td>
+      <td><div class="cell">${p.origem==='datajud'?'<span style="background:#2563EB;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.68rem;font-weight:600">✓ DataJud</span>':'—'}</div></td>
+      <td><div class="cell">—</div></td>
+      <td><div class="cell"><span style="padding:3px 10px;border-radius:5px;font-size:0.78rem;background:#DBEAFE;color:#1D4ED8">${p.status||'—'}</span></div></td>
     </tr>`;
   }).join('');
   tbody.innerHTML = rows + `<tr><td colspan="11" style="padding:0"><div class="add-row" onclick="openModal('processo')">+ Adicionar processo</div></td></tr>`;

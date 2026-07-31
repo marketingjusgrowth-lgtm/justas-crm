@@ -1614,7 +1614,11 @@ async function carregarProcessos() {
   if(!tbody) return;
   tbody.innerHTML='<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted)">Carregando...</td></tr>';
   const {data, error} = await supa.from('processos').select('*');
-  if(error){ console.error('Erro processos:', error); }
+  if(error){
+    console.error('Erro processos:', error);
+    tbody.innerHTML=`<tr><td colspan="11" style="text-align:center;padding:30px;color:red">Erro: ${error.message}</td></tr>`;
+    return;
+  }
   if(!data || data.length===0){
     tbody.innerHTML='<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted)">Nenhum processo cadastrado. Use "Buscar DataJud" ou "+ Novo Processo".</td></tr>';
     return;

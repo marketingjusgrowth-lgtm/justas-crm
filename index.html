@@ -2179,12 +2179,18 @@ async function excluirSelecionados(){
   // Excluir dinâmicos do Supabase
   if(dynRows.length){
     const ids = dynRows.map(r=>r.dataset.id);
-    const table = page.id==='page-processos'?'processos':page.id==='page-prazos'?'prazos':null;
+    const tableMap = {
+      'page-processos':'processos','page-prazos':'prazos',
+      'page-clientes':'clientes','page-pipeline':'leads'
+    };
+    const table = tableMap[page.id]||null;
     if(table){
       const {error} = await supa.from(table).delete().in('id',ids);
       if(error){ alert('Erro ao excluir: '+error.message); return; }
       if(table==='processos') carregarProcessos();
-      else carregarPrazos();
+      else if(table==='prazos') carregarPrazos();
+      else if(table==='clientes') carregarClientes();
+      else if(table==='leads') carregarLeads();
     }
   }
   limparSelecao();

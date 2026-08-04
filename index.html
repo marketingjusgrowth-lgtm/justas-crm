@@ -2628,10 +2628,11 @@ async function salvarProcesso(){
       origem: 'processo'
     });
     if(errPrazo) showToast('⚠ Processo salvo, mas prazo não criado: '+errPrazo.message,'#D97706');
+    else carregarPrazos();
   }
   fecharModalProcesso();
   carregarProcessos();
-  showToast('✓ Processo salvo! Verifique Prazos & Tarefas.');
+  showToast('✓ Processo salvo! Prazo criado automaticamente em Prazos & Tarefas.');
 }
 
 async function excluirProcessoCRM(){

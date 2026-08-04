@@ -2097,7 +2097,8 @@ async function salvarAtendimento(){
       responsavel:  payload.responsavel||null,
       origem:       'atendimento',
     });
-    if(!errTar) carregarPrazos();
+    if(errTar){ showToast('⚠ Atendimento salvo, mas tarefa falhou: '+errTar.message,'#D97706'); }
+    else carregarPrazos();
   }
   fecharModalAtendimento();
   carregarAtendimentos();

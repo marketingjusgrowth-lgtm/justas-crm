@@ -389,17 +389,17 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
     <div class="nav-item" onclick="nav('pipeline',this);carregarLeads()">
       <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 8a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zm6-6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zm0 8a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
       Pipeline Comercial
-      <span class="nav-badge">17</span>
+      <span class="nav-badge" id="badge-pipeline">—</span>
     </div>
     <div class="nav-item" onclick="nav('processos',this);carregarProcessos()">
       <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/></svg>
       Processos
-      <span class="nav-badge">31</span>
+      <span class="nav-badge" id="badge-processos">—</span>
     </div>
     <div class="nav-item" onclick="nav('prazos',this);carregarPrazos()">
       <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
       Prazos & Tarefas
-      <span class="nav-badge" style="background:#EF4444">3</span>
+      <span class="nav-badge" id="badge-prazos" style="background:#EF4444">—</span>
     </div>
 
     <div class="sidebar-section">Gestão</div>
@@ -1717,6 +1717,7 @@ async function confirmarSalvarCRM() {
   fecharSalvarCRM();
   closeDatajud();
   carregarProcessos();
+  carregarDashboard();
   const toast = document.createElement('div');
   toast.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#059669;color:#fff;padding:10px 22px;border-radius:8px;font-size:0.85rem;z-index:9999;font-weight:600';
   toast.textContent='✓ Processo salvo no CRM!';
@@ -2145,6 +2146,7 @@ async function excluirSelecionados(){
       else if(table==='prazos') carregarPrazos();
       else if(table==='clientes') carregarClientes();
       else if(table==='leads') carregarLeads();
+      carregarDashboard();
     }
   }
   limparSelecao();
@@ -2277,10 +2279,20 @@ async function carregarDashboard(){
     supa.from('prazos').select('id,data_prazo,prioridade,status').neq('status','Concluído'),
   ]);
 
-  // Métricas
-  document.getElementById('dash-leads').textContent = resLeads.count ?? 0;
+  // Sidebar badges
+  const nLeads = resLeads.count ?? 0;
+  const nProcessos = resProcessos.count ?? 0;
+  const nPrazos = (resPrazos.data||[]).filter(p=>p.status!=='Concluído').length;
+  document.getElementById('badge-pipeline').textContent = nLeads;
+  document.getElementById('badge-processos').textContent = nProcessos;
+  const badgePrazos = document.getElementById('badge-prazos');
+  badgePrazos.textContent = nPrazos;
+  badgePrazos.style.background = nPrazos > 0 ? '#EF4444' : 'rgba(255,255,255,0.15)';
+
+  // Métricas do dashboard
+  document.getElementById('dash-leads').textContent = nLeads;
   document.getElementById('dash-clientes').textContent = resClientes.count ?? 0;
-  document.getElementById('dash-processos').textContent = resProcessos.count ?? 0;
+  document.getElementById('dash-processos').textContent = nProcessos;
 
   const prazos = resPrazos.data || [];
   const pendentes = prazos.filter(p => p.status !== 'Concluído');
@@ -2547,6 +2559,7 @@ async function salvarProcesso(){
   }
   fecharModalProcesso();
   carregarProcessos();
+  carregarDashboard();
   showToast('✓ Processo salvo! Prazo criado automaticamente em Prazos & Tarefas.');
 }
 
@@ -2556,6 +2569,7 @@ async function excluirProcessoCRM(){
   if(error){ alert('Erro: '+error.message); return; }
   fecharModalProcesso();
   carregarProcessos();
+  carregarDashboard();
 }
 
 // ─── LEAD MODAL SAVE ───
@@ -2587,6 +2601,7 @@ async function salvarLead(){
   if(error){ alert('Erro ao salvar: '+error.message); return; }
   closeModal();
   carregarLeads();
+  carregarDashboard();
   showToast(editId ? '✓ Lead atualizado!' : '✓ Lead salvo!');
 }
 
@@ -2597,6 +2612,7 @@ async function excluirLead(){
   if(error){ alert('Erro: '+error.message); return; }
   closeModal();
   carregarLeads();
+  carregarDashboard();
   showToast('✓ Lead excluído!','#EF4444');
 }
 
@@ -2807,6 +2823,7 @@ async function salvarCliente(){
   if(error){ alert('Erro ao salvar: '+error.message); return; }
   fecharModalCliente();
   carregarClientes();
+  carregarDashboard();
   showToast(editId ? '✓ Cliente atualizado!' : '✓ Cliente cadastrado!');
 }
 
@@ -2817,6 +2834,7 @@ async function excluirCliente(){
   if(error){ alert('Erro: '+error.message); return; }
   fecharModalCliente();
   carregarClientes();
+  carregarDashboard();
   showToast('✓ Cliente excluído!','#EF4444');
 }
 
@@ -2979,6 +2997,7 @@ async function salvarTarefa(){
   if(error){ alert('Erro ao salvar: '+error.message); return; }
   fecharModalTarefa();
   carregarPrazos();
+  carregarDashboard();
   showToast(editId ? '✓ Tarefa atualizada!' : '✓ Tarefa adicionada!');
 }
 
@@ -2987,6 +3006,7 @@ async function concluirTarefaRapido(id, btn){
   const {error} = await supa.from('prazos').update({status:'Concluído'}).eq('id',id);
   if(error){ showToast('Erro: '+error.message,'#EF4444'); btn.textContent='✓ Feito'; btn.disabled=false; return; }
   carregarPrazos();
+  carregarDashboard();
   showToast('✓ Tarefa concluída!');
 }
 

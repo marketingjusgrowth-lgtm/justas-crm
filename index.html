@@ -1080,8 +1080,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
           <select id="pm-status"><option>Em andamento</option><option>Pendente</option><option>Concluído</option><option>Suspenso</option></select>
         </div>
         <div class="fg"><label>Ação Requerida</label><input id="pm-acao" type="text" placeholder="Ex: Protocolar contestação..."/></div>
-        <div class="fg"><label>Responsável</label>
-          <select id="pm-resp"><option>Gustavo Rafael</option><option>Ana Lima</option><option>Bruno Costa</option></select>
+        <div class="fg form-full"><label>Responsáveis</label>
+          <div id="pm-resp-list" style="display:flex;flex-wrap:wrap;gap:10px;padding:10px;border:1px solid var(--border);border-radius:8px;background:#fff;min-height:42px"></div>
+        </div>
+        <div class="fg form-full">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500">
+            <input type="checkbox" id="pm-visivel-todos" style="accent-color:var(--blue);width:16px;height:16px"/>
+            Visível para todos os usuários
+          </label>
         </div>
         <div class="fg form-full"><label>Observações</label><textarea id="pm-obs" rows="3" placeholder="Notas sobre o processo..."></textarea></div>
       </div>
@@ -1243,6 +1249,14 @@ function showLoginError(msg){
 }
 
 let currentUser = null;
+let _loginNome = '';
+let _loginRole = '';
+
+const USUARIOS_CRM = [
+  {nome:'Gustavo Rafael', iniciais:'GR', cor:'#2563EB', role:'admin'},
+  {nome:'Ana Lima',       iniciais:'AL', cor:'#059669', role:'advogado'},
+  {nome:'Bruno Costa',    iniciais:'BC', cor:'#7C3AED', role:'estagiario'},
+];
 
 function enterApp(user){
   currentUser = user;
@@ -1251,6 +1265,8 @@ function enterApp(user){
   const iniciais = meta.iniciais || nome.slice(0,2).toUpperCase();
   const cor = meta.cor || '#2563EB';
   const cargo = meta.cargo || 'Administrador';
+  _loginNome = nome;
+  _loginRole = meta.role || 'admin';
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').classList.add('show');
   document.getElementById('user-av').textContent = iniciais;
@@ -1266,12 +1282,20 @@ function enterApp(user){
 }
 
 function loginAs(name,initials,color,role){
+  _loginNome = name;
+  _loginRole = role;
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').classList.add('show');
   document.getElementById('user-av').textContent=initials;
   document.getElementById('user-av').style.background=color;
   document.getElementById('user-name').textContent=name;
   document.getElementById('user-role').textContent=role==='admin'?'Administrador':role==='advogado'?'Advogada':role==='estagiario'?'Estagiário':role;
+  setTimeout(()=>{
+    carregarProcessos().catch(e=>console.error(e));
+    carregarLeads().catch(e=>console.error(e));
+    carregarClientes().catch(e=>console.error(e));
+    carregarDashboard().catch(e=>console.error(e));
+  },300);
 }
 
 async function doLogout(){
@@ -1744,7 +1768,13 @@ async function carregarProcessos() {
   const tbody = document.getElementById('proc-tbody');
   if(!tbody) return;
   tbody.innerHTML='<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted)">Carregando...</td></tr>';
-  const {data, error} = await supa.from('processos').select('*');
+
+  let query = supa.from('processos').select('*');
+  if(_loginRole !== 'admin' && _loginNome){
+    query = query.or(`responsaveis.cs.{"${_loginNome}"},visivel_todos.eq.true`);
+  }
+  const {data, error} = await query;
+
   const countEl = document.getElementById('proc-count');
   if(error){
     if(countEl) countEl.textContent = 'Erro: '+error.message;
@@ -1753,13 +1783,22 @@ async function carregarProcessos() {
   }
   if(countEl) countEl.textContent = (data?.length||0)+' processo(s)';
   if(!data || data.length===0){
-    tbody.innerHTML='<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted)">Nenhum processo cadastrado. Use "Buscar DataJud" ou "+ Novo Processo".</td></tr>';
+    tbody.innerHTML='<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted)">Nenhum processo atribuído a você ainda.</td></tr>';
     return;
   }
+
   const rows = data.map(p=>{
     const cor = AREA_COLORS[p.area] || {bg:'#F1F5F9',color:'#475569'};
     const av  = initials(p.cliente_nome||'?');
     const avBg = ['#2563EB','#059669','#7C3AED','#D97706','#BE123C'][(av.charCodeAt(0)||0)%5];
+    const resps = (p.responsaveis||[]);
+    const respsHtml = resps.map(nome=>{
+      const u = USUARIOS_CRM.find(x=>x.nome===nome);
+      const cor2 = u?.cor||'#64748B';
+      const ini = u?.iniciais||(nome.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase());
+      return `<span title="${nome}" style="width:22px;height:22px;border-radius:50%;background:${cor2};color:#fff;font-size:0.62rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;border:2px solid #fff;margin-left:-4px">${ini}</span>`;
+    }).join('');
+    const visivelTag = p.visivel_todos ? '<span title="Visível para todos" style="font-size:0.68rem;background:#D1FAE5;color:#065F46;padding:1px 6px;border-radius:4px;font-weight:600">👁 Todos</span>' : '';
     return `<tr data-id="${p.id}" style="cursor:pointer" onclick="abrirModalProcesso('${p.id}')">
       <td onclick="event.stopPropagation()"><div class="cell" style="justify-content:center"><input type="checkbox" onchange="atualizarBarraAcoes()" onclick="event.stopPropagation()"/></div></td>
       <td><div class="cell" style="font-weight:700;color:#2563EB;font-size:0.77rem">${p.numero||'—'}</div></td>
@@ -1770,7 +1809,7 @@ async function carregarProcessos() {
       <td><div class="cell">—</div></td>
       <td><div class="cell cell-muted" style="font-size:0.77rem">${p.acao_requerida||'—'}</div></td>
       <td><div class="cell">${p.origem==='datajud'?'<span style="background:#2563EB;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.68rem;font-weight:600">✓ DataJud</span>':'—'}</div></td>
-      <td><div class="cell">—</div></td>
+      <td><div class="cell" style="gap:0;padding-left:8px">${resps.length ? respsHtml : '—'} ${visivelTag}</div></td>
       <td><div class="cell"><span style="padding:3px 10px;border-radius:5px;font-size:0.78rem;background:#DBEAFE;color:#1D4ED8">${p.status||'—'}</span></div></td>
     </tr>`;
   }).join('');
@@ -2494,6 +2533,15 @@ function updateKanbanCounts(){
 
 // ─── PROCESSO MODAL ───
 let _procEditId = null;
+function _renderRespCheckboxes(selecionados=[]){
+  const container = document.getElementById('pm-resp-list');
+  container.innerHTML = USUARIOS_CRM.map(u=>`
+    <label style="display:flex;align-items:center;gap:6px;padding:5px 10px;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:0.83rem;font-weight:500;background:#F8FAFC">
+      <input type="checkbox" name="pm-resp-cb" value="${u.nome}" style="accent-color:${u.cor}" ${selecionados.includes(u.nome)?'checked':''}>
+      <span style="width:22px;height:22px;border-radius:50%;background:${u.cor};color:#fff;font-size:0.65rem;font-weight:700;display:flex;align-items:center;justify-content:center">${u.iniciais}</span>
+      ${u.nome}
+    </label>`).join('');
+}
 async function abrirModalProcesso(id){
   _procEditId = id || null;
   document.getElementById('proc-modal-titulo').textContent = id ? 'Editar Processo' : 'Novo Processo';
@@ -2501,19 +2549,23 @@ async function abrirModalProcesso(id){
   if(id){
     const {data} = await supa.from('processos').select('*').eq('id',id).single();
     if(data){
-      document.getElementById('pm-numero').value    = data.numero||'';
-      document.getElementById('pm-cliente').value   = data.cliente_nome||'';
-      document.getElementById('pm-tribunal').value  = data.tribunal||'';
-      document.getElementById('pm-acao').value      = data.acao_requerida||'';
-      document.getElementById('pm-obs').value       = data.observacoes||'';
-      const setSelect = (id, val) => { const s=document.getElementById(id); for(let i=0;i<s.options.length;i++) if(s.options[i].value===val||s.options[i].text===val) s.selectedIndex=i; };
+      document.getElementById('pm-numero').value   = data.numero||'';
+      document.getElementById('pm-cliente').value  = data.cliente_nome||'';
+      document.getElementById('pm-tribunal').value = data.tribunal||'';
+      document.getElementById('pm-acao').value     = data.acao_requerida||'';
+      document.getElementById('pm-obs').value      = data.observacoes||'';
+      document.getElementById('pm-visivel-todos').checked = !!data.visivel_todos;
+      const setSelect = (eid,val)=>{ const s=document.getElementById(eid); for(let i=0;i<s.options.length;i++) if(s.options[i].value===val||s.options[i].text===val) s.selectedIndex=i; };
       setSelect('pm-area', data.area||'');
       setSelect('pm-fase', data.fase||'Conhecimento');
       setSelect('pm-status', data.status||'Em andamento');
+      _renderRespCheckboxes(data.responsaveis||[]);
     }
   } else {
     ['pm-numero','pm-cliente','pm-tribunal','pm-acao','pm-obs'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
-    ['pm-area','pm-fase','pm-status','pm-resp'].forEach(i=>{const el=document.getElementById(i);if(el)el.selectedIndex=0;});
+    ['pm-area','pm-fase','pm-status'].forEach(i=>{const el=document.getElementById(i);if(el)el.selectedIndex=0;});
+    document.getElementById('pm-visivel-todos').checked = false;
+    _renderRespCheckboxes([_loginNome]);
   }
   document.getElementById('proc-overlay').style.display='flex';
   setTimeout(()=>document.getElementById('pm-cliente').focus(),50);
@@ -2527,6 +2579,7 @@ function fecharModalProcesso(){
 async function salvarProcesso(){
   const cliente = document.getElementById('pm-cliente').value.trim();
   if(!cliente){ document.getElementById('pm-cliente').style.borderColor='var(--red)'; return; }
+  const responsaveis = [...document.querySelectorAll('input[name="pm-resp-cb"]:checked')].map(cb=>cb.value);
   const payload = {
     numero:         document.getElementById('pm-numero').value.trim()||null,
     cliente_nome:   cliente,
@@ -2535,6 +2588,9 @@ async function salvarProcesso(){
     fase:           document.getElementById('pm-fase').value,
     status:         document.getElementById('pm-status').value,
     acao_requerida: document.getElementById('pm-acao').value.trim()||null,
+    observacoes:    document.getElementById('pm-obs').value.trim()||null,
+    responsaveis:   responsaveis,
+    visivel_todos:  document.getElementById('pm-visivel-todos').checked,
     origem:         'manual'
   };
   let err;

@@ -2087,8 +2087,21 @@ async function salvarAtendimento(){
     ({error:err} = await supa.from('atendimentos').insert(payload));
   }
   if(err){ alert('Erro ao salvar: '+err.message); return; }
+  if(!_atEditId){
+    const {error: errTar} = await supa.from('prazos').insert({
+      titulo:       'Retorno/Follow-up — ' + cliente,
+      cliente_nome: cliente,
+      tipo:         'Tarefa',
+      prioridade:   'media',
+      status:       'Pendente',
+      responsavel:  payload.responsavel||null,
+      origem:       'atendimento',
+    });
+    if(!errTar) carregarPrazos();
+  }
   fecharModalAtendimento();
   carregarAtendimentos();
+  showToast('✓ Atendimento salvo! Tarefa criada em Prazos & Tarefas.');
 }
 
 async function excluirAtendimento(){
@@ -2366,8 +2379,12 @@ async function carregarPrazos(){
         <td><div class="cell"><span class="badge" style="background:${ps.bg};color:${ps.color}">${ps.label}</span></div></td>
         <td><div class="cell">${origemHtml}</div></td>
         <td><div class="cell"><div class="av av-sm" style="background:${avBg}">${av}</div></div></td>
-        <td><div class="cell"><span class="status-cell" style="background:${ss.bg};color:${ss.color};cursor:pointer"
-          onclick="alterarStatusPrazo(this,'${p.id}')">${p.status||'Pendente'}</span></div></td>
+        <td><div class="cell" style="gap:6px;display:flex;align-items:center">
+          <span class="status-cell" style="background:${ss.bg};color:${ss.color};cursor:pointer"
+            onclick="alterarStatusPrazo(this,'${p.id}')" title="Clique para mudar status">${p.status||'Pendente'}</span>
+          ${p.status!=='Concluído'?`<button onclick="concluirTarefaRapido('${p.id}',this)" title="Marcar como concluída"
+            style="background:#D1FAE5;color:#065F46;border:none;border-radius:6px;padding:3px 8px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap">✓ Feito</button>`:''}
+        </div></td>
       </tr>`;
     });
   });
@@ -2936,13 +2953,20 @@ async function salvarTarefa(){
     ({error} = await supa.from('prazos').update(payload).eq('id',editId));
   } else {
     payload.origem = 'manual';
-    payload.user_id = currentUser?.id||null;
     ({error} = await supa.from('prazos').insert(payload));
   }
   if(error){ alert('Erro ao salvar: '+error.message); return; }
   fecharModalTarefa();
   carregarPrazos();
   showToast(editId ? '✓ Tarefa atualizada!' : '✓ Tarefa adicionada!');
+}
+
+async function concluirTarefaRapido(id, btn){
+  btn.textContent='...'; btn.disabled=true;
+  const {error} = await supa.from('prazos').update({status:'Concluído'}).eq('id',id);
+  if(error){ showToast('Erro: '+error.message,'#EF4444'); btn.textContent='✓ Feito'; btn.disabled=false; return; }
+  carregarPrazos();
+  showToast('✓ Tarefa concluída!');
 }
 
 // ─── EXPORTAR DADOS ───

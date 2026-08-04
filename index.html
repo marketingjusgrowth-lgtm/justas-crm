@@ -2702,13 +2702,15 @@ async function carregarLeads(){
         <span class="k-card-date">${lead.origem||''}</span>
         <div class="av av-sm" style="background:${avBg}">${av}</div>
       </div>`;
-    card.addEventListener('click', ()=> abrirModalLead(lead.id));
+    let _cardDragged = false;
+    card.addEventListener('dragstart', ()=>{ dragging=card; _cardDragged=true; setTimeout(()=>card.style.opacity='.4',0); });
+    card.addEventListener('dragend',   ()=>{ dragging=null; card.style.opacity='1'; document.querySelectorAll('.kanban-cards').forEach(c=>c.style.background=''); setTimeout(()=>_cardDragged=false,100); });
+    card.addEventListener('click',     ()=>{ if(_cardDragged) return; abrirModalLead(lead.id); });
     col.appendChild(card);
   });
 
   updateKanbanCounts();
   initKanbanCardActions();
-  initKanbanDnD();
 }
 
 // ─── PRAZOS: FILTRAR ───

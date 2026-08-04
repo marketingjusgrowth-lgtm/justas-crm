@@ -403,7 +403,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
     </div>
 
     <div class="sidebar-section">Gestão</div>
-    <div class="nav-item" onclick="nav('financeiro',this)">
+    <div class="nav-item" onclick="nav('financeiro',this);carregarFinanceiro()">
       <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"/></svg>
       Financeiro
     </div>
@@ -778,91 +778,59 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
         <div class="fin-grid">
           <div class="fin-card">
             <div class="fin-label">Receita do Mês</div>
-            <div class="fin-value" style="color:var(--green)">R$ 84.200</div>
-            <div class="fin-sub" style="color:var(--green)">▲ +18% vs julho</div>
+            <div class="fin-value" id="fin-receita" style="color:var(--green)">R$ 0</div>
+            <div class="fin-sub" id="fin-receita-sub" style="color:var(--text-muted)">Nenhuma receita lançada</div>
           </div>
           <div class="fin-card">
             <div class="fin-label">Despesas do Mês</div>
-            <div class="fin-value" style="color:var(--red)">R$ 22.400</div>
-            <div class="fin-sub">Custo operacional</div>
+            <div class="fin-value" id="fin-despesa" style="color:var(--red)">R$ 0</div>
+            <div class="fin-sub" id="fin-despesa-sub" style="color:var(--text-muted)">Nenhuma despesa lançada</div>
           </div>
           <div class="fin-card">
             <div class="fin-label">Lucro Líquido</div>
-            <div class="fin-value" style="color:var(--blue)">R$ 61.800</div>
-            <div class="fin-sub">Margem 73%</div>
+            <div class="fin-value" id="fin-lucro" style="color:var(--blue)">R$ 0</div>
+            <div class="fin-sub" id="fin-lucro-sub" style="color:var(--text-muted)">Margem 0%</div>
           </div>
           <div class="fin-card">
-            <div class="fin-label">Honorários a Receber</div>
-            <div class="fin-value" style="color:var(--yellow)">R$ 18.500</div>
-            <div class="fin-sub">3 faturas em aberto</div>
+            <div class="fin-label">A Receber</div>
+            <div class="fin-value" id="fin-receber" style="color:var(--yellow)">R$ 0</div>
+            <div class="fin-sub" id="fin-receber-sub" style="color:var(--text-muted)">Nenhuma pendência</div>
           </div>
         </div>
         <div class="fin-body">
           <div style="display:flex;flex-direction:column;gap:14px">
             <div class="card-block">
-              <div class="card-head"><h3>Honorários Recebidos — Julho 2025</h3><button class="btn btn-blue btn-sm">+ Lançamento</button></div>
-              <div class="card-rows">
-                <div class="fin-row"><div class="fin-row-icon" style="background:var(--green-bg)">💰</div><div class="fin-row-info"><strong>Construtora Edifica</strong><span>Mensalidade Agosto · Fixo</span></div><div class="fin-amount" style="color:var(--green)">+ R$ 3.500</div><span style="font-size:0.72rem;color:var(--text-muted)">01/08</span></div>
-                <div class="fin-row"><div class="fin-row-icon" style="background:var(--green-bg)">💰</div><div class="fin-row-info"><strong>Conecta Consultoria</strong><span>Êxito processo trabalhista</span></div><div class="fin-amount" style="color:var(--green)">+ R$ 8.400</div><span style="font-size:0.72rem;color:var(--text-muted)">28/07</span></div>
-                <div class="fin-row"><div class="fin-row-icon" style="background:var(--green-bg)">💰</div><div class="fin-row-info"><strong>G Prime Imóveis</strong><span>Mensalidade Agosto · Fixo</span></div><div class="fin-amount" style="color:var(--green)">+ R$ 2.200</div><span style="font-size:0.72rem;color:var(--text-muted)">01/08</span></div>
-                <div class="fin-row"><div class="fin-row-icon" style="background:var(--green-bg)">💰</div><div class="fin-row-info"><strong>João Pedro Alves</strong><span>Honorário fixo — Tributário</span></div><div class="fin-amount" style="color:var(--green)">+ R$ 45.000</div><span style="font-size:0.72rem;color:var(--text-muted)">15/07</span></div>
-                <div class="fin-row" style="background:var(--red-bg);opacity:.8"><div class="fin-row-icon" style="background:#FCA5A5">⏳</div><div class="fin-row-info"><strong>Remax Exclusive</strong><span>Honorário fixo — Em aberto</span></div><div class="fin-amount" style="color:var(--red)">R$ 8.000</div><span style="font-size:0.72rem;background:var(--red-bg);color:var(--red);padding:2px 7px;border-radius:100px;font-weight:700">Pendente</span></div>
+              <div class="card-head">
+                <h3 id="fin-rec-titulo">Receitas</h3>
+                <button class="btn btn-blue btn-sm" onclick="abrirModalLancamento('receita')">+ Receita</button>
+              </div>
+              <div id="fin-lista-receitas" class="card-rows">
+                <div style="text-align:center;padding:24px;color:var(--text-muted);font-size:0.85rem">Nenhuma receita lançada este mês.</div>
               </div>
             </div>
             <div class="card-block">
-              <div class="card-head"><h3>Despesas — Julho 2025</h3></div>
-              <div class="card-rows">
-                <div class="fin-row"><div class="fin-row-icon" style="background:var(--red-bg)">📢</div><div class="fin-row-info"><strong>Tráfego Pago — Meta Ads</strong><span>Campanha julho</span></div><div class="fin-amount" style="color:var(--red)">- R$ 4.800</div><span style="font-size:0.72rem;color:var(--text-muted)">31/07</span></div>
-                <div class="fin-row"><div class="fin-row-icon" style="background:var(--red-bg)">📢</div><div class="fin-row-info"><strong>Google Ads</strong><span>Campanha julho</span></div><div class="fin-amount" style="color:var(--red)">- R$ 2.100</div><span style="font-size:0.72rem;color:var(--text-muted)">31/07</span></div>
-                <div class="fin-row"><div class="fin-row-icon" style="background:var(--yellow-bg)">🏢</div><div class="fin-row-info"><strong>Aluguel escritório</strong><span>Venc. 10/08</span></div><div class="fin-amount" style="color:var(--red)">- R$ 3.500</div><span style="font-size:0.72rem;color:var(--text-muted)">10/08</span></div>
-                <div class="fin-row"><div class="fin-row-icon" style="background:var(--blue-mid)">💻</div><div class="fin-row-info"><strong>Softwares (CRM, E-proc, etc.)</strong><span>Mensalidade</span></div><div class="fin-amount" style="color:var(--red)">- R$ 890</div><span style="font-size:0.72rem;color:var(--text-muted)">01/08</span></div>
+              <div class="card-head">
+                <h3 id="fin-desp-titulo">Despesas</h3>
+                <button class="btn btn-ghost btn-sm" onclick="abrirModalLancamento('despesa')">+ Despesa</button>
+              </div>
+              <div id="fin-lista-despesas" class="card-rows">
+                <div style="text-align:center;padding:24px;color:var(--text-muted);font-size:0.85rem">Nenhuma despesa lançada este mês.</div>
               </div>
             </div>
           </div>
-          <!-- Right: DRE completo -->
           <div style="display:flex;flex-direction:column;gap:14px">
             <div class="card-block">
-              <div class="card-head" style="flex-wrap:wrap;gap:8px">
-                <h3>DRE — Demonstração do Resultado</h3>
-                <div style="display:flex;gap:6px">
-                  <select id="dre-periodo" style="font-size:0.78rem;padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:#fff" onchange="updateDRE()">
-                    <option value="jul">Julho 2025</option>
-                    <option value="jun">Junho 2025</option>
-                    <option value="acum" selected>Acumulado 2025</option>
-                  </select>
-                  <button class="btn btn-ghost btn-sm" onclick="exportDRE()">⬇ Exportar</button>
-                </div>
-              </div>
+              <div class="card-head"><h3>Resumo do Mês</h3><button class="btn btn-ghost btn-sm" onclick="exportarFinanceiro()">⬇ Exportar</button></div>
               <div style="padding:0 16px 16px">
-                <table style="width:100%;border-collapse:collapse;font-size:0.81rem" id="dre-table">
-                  <colgroup><col style="width:60%"><col style="width:20%;text-align:right"><col style="width:20%;text-align:right"></colgroup>
-                  <thead>
-                    <tr style="border-bottom:2px solid var(--border)">
-                      <th style="padding:8px 0;text-align:left;font-weight:700;color:var(--text-muted);font-size:0.75rem;text-transform:uppercase;letter-spacing:.04em">Conta</th>
-                      <th style="padding:8px 0;text-align:right;font-weight:700;color:var(--text-muted);font-size:0.75rem;text-transform:uppercase">Valor (R$)</th>
-                      <th style="padding:8px 0;text-align:right;font-weight:700;color:var(--text-muted);font-size:0.75rem;text-transform:uppercase">% Receita</th>
-                    </tr>
-                  </thead>
-                  <tbody id="dre-body">
-                  </tbody>
+                <table style="width:100%;border-collapse:collapse;font-size:0.81rem">
+                  <tbody id="dre-body"></tbody>
                 </table>
               </div>
             </div>
             <div class="card-block">
-              <div class="card-head"><h3>Receita por Área</h3></div>
-              <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px">
-                <div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.8rem"><span>Empresarial</span><span style="color:var(--text-muted);font-weight:600">R$ 185k</span></div><div style="height:5px;background:var(--border);border-radius:100px;overflow:hidden"><div style="width:62%;height:100%;background:var(--orange);border-radius:100px"></div></div></div>
-                <div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.8rem"><span>Tributário</span><span style="color:var(--text-muted);font-weight:600">R$ 142k</span></div><div style="height:5px;background:var(--border);border-radius:100px;overflow:hidden"><div style="width:48%;height:100%;background:var(--purple);border-radius:100px"></div></div></div>
-                <div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.8rem"><span>Trabalhista</span><span style="color:var(--text-muted);font-weight:600">R$ 98k</span></div><div style="height:5px;background:var(--border);border-radius:100px;overflow:hidden"><div style="width:33%;height:100%;background:var(--green);border-radius:100px"></div></div></div>
-                <div><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.8rem"><span>Família / Cível</span><span style="color:var(--text-muted);font-weight:600">R$ 62k</span></div><div style="height:5px;background:var(--border);border-radius:100px;overflow:hidden"><div style="width:21%;height:100%;background:var(--blue);border-radius:100px"></div></div></div>
-              </div>
-            </div>
-            <div class="card-block">
-              <div class="card-head"><h3>Próximos Vencimentos</h3></div>
-              <div style="padding:4px 16px">
-                <div class="prazo-row"><div class="prazo-info" style="flex:1"><strong>Remax Exclusive</strong><span>Honorário fixo em aberto</span></div><span style="font-weight:700;color:var(--red)">R$ 8.000</span></div>
-                <div class="prazo-row"><div class="prazo-info" style="flex:1"><strong>Aluguel Escritório</strong><span>Venc. 10/08</span></div><span style="font-weight:700;color:var(--yellow)">R$ 3.500</span></div>
-                <div class="prazo-row"><div class="prazo-info" style="flex:1"><strong>INSS / ISS</strong><span>Venc. 20/08</span></div><span style="font-weight:700;color:var(--text-muted)">R$ 4.320</span></div>
+              <div class="card-head"><h3>Pendentes — A Receber / Pagar</h3></div>
+              <div id="fin-lista-pendentes" style="padding:4px 16px">
+                <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.85rem">Nenhuma pendência.</div>
               </div>
             </div>
           </div>
@@ -1164,6 +1132,59 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
         <button class="btn btn-blue" onclick="buscarDatajud()" id="datajud-btn">Buscar</button>
       </div>
       <div id="datajud-result"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL LANÇAMENTO FINANCEIRO -->
+<div id="lanc-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center;padding:20px" onclick="if(event.target.id==='lanc-overlay')fecharModalLancamento()">
+  <div style="background:var(--card);border-radius:14px;width:100%;max-width:520px;box-shadow:0 20px 60px rgba(0,0,0,0.2);overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0">
+      <h2 id="lanc-titulo" style="font-size:1rem;font-weight:700">Novo Lançamento</h2>
+      <button onclick="fecharModalLancamento()" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-muted)">×</button>
+    </div>
+    <input type="hidden" id="lanc-id"/>
+    <input type="hidden" id="lanc-tipo"/>
+    <div style="padding:16px 24px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="grid-column:1/-1">
+        <label style="font-size:0.78rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px">Descrição *</label>
+        <input id="lanc-descricao" type="text" placeholder="Ex: Honorários Empresa X" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:0.87rem;background:var(--card);color:var(--text);font-family:inherit;box-sizing:border-box"/>
+      </div>
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px">Categoria</label>
+        <select id="lanc-categoria" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:0.87rem;background:var(--card);color:var(--text);font-family:inherit;box-sizing:border-box"></select>
+      </div>
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px">Valor (R$) *</label>
+        <input id="lanc-valor" type="number" min="0" step="0.01" placeholder="0,00" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:0.87rem;background:var(--card);color:var(--text);font-family:inherit;box-sizing:border-box"/>
+      </div>
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px">Data</label>
+        <input id="lanc-data" type="date" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:0.87rem;background:var(--card);color:var(--text);font-family:inherit;box-sizing:border-box"/>
+      </div>
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px">Status</label>
+        <select id="lanc-status" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:0.87rem;background:var(--card);color:var(--text);font-family:inherit;box-sizing:border-box">
+          <option value="Pago">Pago / Realizado</option>
+          <option value="Pendente">Pendente</option>
+          <option value="Cancelado">Cancelado</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px">Cliente (opcional)</label>
+        <input id="lanc-cliente" type="text" placeholder="Nome do cliente" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:0.87rem;background:var(--card);color:var(--text);font-family:inherit;box-sizing:border-box"/>
+      </div>
+      <div style="grid-column:1/-1">
+        <label style="font-size:0.78rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px">Observações</label>
+        <textarea id="lanc-obs" rows="2" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:0.87rem;background:var(--card);color:var(--text);font-family:inherit;resize:vertical;box-sizing:border-box"></textarea>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-top:1px solid var(--border)">
+      <button id="lanc-excluir-btn" onclick="excluirLancamento()" style="background:var(--red-bg);color:var(--red);border:none;border-radius:8px;padding:9px 16px;font-size:0.85rem;font-weight:600;cursor:pointer;display:none">Excluir</button>
+      <div style="display:flex;gap:8px;margin-left:auto">
+        <button onclick="fecharModalLancamento()" style="background:var(--sidebar);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px 16px;font-size:0.85rem;font-weight:600;cursor:pointer">Cancelar</button>
+        <button onclick="salvarLancamento()" style="background:var(--blue);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:0.85rem;font-weight:700;cursor:pointer">Salvar</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1476,106 +1497,195 @@ function cycleStatus(el){
   el.textContent=next.label;el.style.background=next.bg;el.style.color=next.color;
 }
 
-// ─── DRE COMPLETO ───
-const dreData={
-  jul:{
-    receitaBruta:84200,deducoesImposto:7600,destonesServico:0,
-    cvo:8200,
-    despPessoal:12000,despMarketing:6900,despEstrutura:3500,despSoftware:890,despOutras:1100,
-    depreciacao:400,resultFinanceiro:-320,ircsll:8400
-  },
-  jun:{
-    receitaBruta:71500,deducoesImposto:6435,destonesServico:0,
-    cvo:6800,
-    despPessoal:12000,despMarketing:5200,despEstrutura:3500,despSoftware:890,despOutras:900,
-    depreciacao:400,resultFinanceiro:-280,ircsll:6800
-  },
-  acum:{
-    receitaBruta:487200,deducoesImposto:43848,destonesServico:0,
-    cvo:51200,
-    despPessoal:84000,despMarketing:38400,despEstrutura:24500,despSoftware:6230,despOutras:7300,
-    depreciacao:2800,resultFinanceiro:-1920,ircsll:44320
-  }
+// ─── FINANCEIRO ───
+function fmt(v){return'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtShort(v){return'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});}
+
+const LANC_CATS = {
+  receita: ['Honorários','Êxito/Contingência','Mensalidade','Consultoria','Outros'],
+  despesa: ['Pessoal','Marketing','Estrutura/Aluguel','Softwares','Impostos','Outros']
 };
 
-function fmt(v){return'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:0});}
-function pct(v,base){return base?((v/base)*100).toFixed(1)+'%':'—';}
+let _lancamentos = [];
 
-function updateDRE(){
-  const key=document.getElementById('dre-periodo').value;
-  const d=dreData[key];
-  const recLiq=d.receitaBruta-d.deducoesImposto-d.destonesServico;
-  const lucroBruto=recLiq-d.cvo;
-  const despOp=d.despPessoal+d.despMarketing+d.despEstrutura+d.despSoftware+d.despOutras;
-  const ebitda=lucroBruto-despOp;
-  const ebit=ebitda-d.depreciacao;
-  const lair=ebit+d.resultFinanceiro;
-  const lucroLiq=lair-d.ircsll;
-  const base=d.receitaBruta;
+async function carregarFinanceiro(){
+  const hoje = new Date();
+  const anoMes = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
+  const ini = anoMes+'-01';
+  const fim = anoMes+'-31';
 
-  const rows=[
-    {label:'(+) Receita Bruta de Serviços',val:d.receitaBruta,style:'bold',color:'var(--green)'},
-    {label:'(-) Deduções e Impostos sobre Serviços',val:-d.deducoesImposto,style:'indent',color:'var(--red)'},
-    {label:'(-) Descontos Concedidos',val:-d.destonesServico,style:'indent',color:'var(--red)'},
-    {label:'(=) Receita Líquida',val:recLiq,style:'subtotal',color:'var(--text)'},
-    {label:'(-) Custo dos Serviços Prestados (CSV)',val:-d.cvo,style:'indent',color:'var(--red)'},
-    {label:'(=) Lucro Bruto',val:lucroBruto,style:'subtotal',color:lucroBruto>=0?'var(--green)':'var(--red)'},
-    {label:'Despesas Operacionais',val:null,style:'section'},
-    {label:'  · Pessoal e Honorários',val:-d.despPessoal,style:'indent2',color:'var(--red)'},
-    {label:'  · Marketing e Tráfego Pago',val:-d.despMarketing,style:'indent2',color:'var(--red)'},
-    {label:'  · Estrutura e Aluguel',val:-d.despEstrutura,style:'indent2',color:'var(--red)'},
-    {label:'  · Softwares e Tecnologia',val:-d.despSoftware,style:'indent2',color:'var(--red)'},
-    {label:'  · Outras Despesas',val:-d.despOutras,style:'indent2',color:'var(--red)'},
-    {label:'(=) EBITDA',val:ebitda,style:'subtotal highlight',color:ebitda>=0?'var(--blue)':'var(--red)'},
-    {label:'(-) Depreciação e Amortização',val:-d.depreciacao,style:'indent',color:'var(--red)'},
-    {label:'(=) EBIT (Resultado Operacional)',val:ebit,style:'subtotal',color:ebit>=0?'var(--text)':'var(--red)'},
-    {label:'(+/-) Resultado Financeiro',val:d.resultFinanceiro,style:'indent',color:d.resultFinanceiro>=0?'var(--green)':'var(--red)'},
-    {label:'(=) LAIR (Lucro Antes do IR)',val:lair,style:'subtotal',color:lair>=0?'var(--text)':'var(--red)'},
-    {label:'(-) IR e CSLL',val:-d.ircsll,style:'indent',color:'var(--red)'},
-    {label:'(=) Lucro Líquido do Período',val:lucroLiq,style:'total',color:lucroLiq>=0?'var(--green)':'var(--red)'},
-    {label:'Margem Líquida',val:null,meta:pct(lucroLiq,base),style:'meta',color:lucroLiq>=0?'var(--green)':'var(--red)'},
-    {label:'Margem EBITDA',val:null,meta:pct(ebitda,base),style:'meta',color:'var(--blue)'},
-  ];
+  const {data,error} = await supa.from('lancamentos').select('*').gte('data',ini).lte('data',fim).order('data',{ascending:false});
+  if(error){console.error(error);return;}
+  _lancamentos = data||[];
 
-  const tbody=document.getElementById('dre-body');
-  tbody.innerHTML=rows.map(r=>{
-    if(r.style==='section') return `<tr><td colspan="3" style="padding:10px 0 4px;font-weight:700;font-size:0.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);border-top:1px solid var(--border)">${r.label}</td></tr>`;
-    const isMeta=r.style==='meta';
-    const isTotal=r.style==='total';
-    const isHighlight=r.style==='subtotal highlight';
-    const bg=isTotal?'var(--blue-light)':isHighlight?'#F0F9FF':'';
-    const fw=isTotal||r.style==='bold'?'700':'400';
-    const fs=isTotal?'0.88rem':'0.81rem';
-    const pt=r.style==='subtotal'||r.style==='total'||isHighlight?'8px 0 6px':'4px 0';
-    const bt=r.style==='subtotal'||r.style==='total'||isHighlight?'border-top:1px solid var(--border);':'';
-    const dispVal=r.val!==null?(r.val<0?'-'+fmt(Math.abs(r.val)):fmt(r.val)):(r.meta||'—');
-    const dispPct=r.val!==null?pct(Math.abs(r.val),base):'';
+  const receitas = _lancamentos.filter(l=>l.tipo==='receita');
+  const despesas = _lancamentos.filter(l=>l.tipo==='despesa');
+  const pendentes = _lancamentos.filter(l=>l.status==='Pendente');
+
+  const totRec = receitas.filter(l=>l.status!=='Cancelado').reduce((s,l)=>s+Number(l.valor),0);
+  const totDesp = despesas.filter(l=>l.status!=='Cancelado').reduce((s,l)=>s+Number(l.valor),0);
+  const totReceber = _lancamentos.filter(l=>l.tipo==='receita'&&l.status==='Pendente').reduce((s,l)=>s+Number(l.valor),0);
+  const lucro = totRec - totDesp;
+  const margem = totRec > 0 ? ((lucro/totRec)*100).toFixed(1) : 0;
+
+  const mesNome = hoje.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+
+  document.getElementById('fin-receita').textContent = fmtShort(totRec);
+  document.getElementById('fin-receita-sub').textContent = `${receitas.length} lançamento(s) — ${mesNome}`;
+  document.getElementById('fin-despesa').textContent = fmtShort(totDesp);
+  document.getElementById('fin-despesa-sub').textContent = `${despesas.length} lançamento(s) — ${mesNome}`;
+  document.getElementById('fin-lucro').textContent = fmtShort(lucro);
+  document.getElementById('fin-lucro').style.color = lucro >= 0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('fin-lucro-sub').textContent = `Margem ${margem}%`;
+  document.getElementById('fin-receber').textContent = fmtShort(totReceber);
+  document.getElementById('fin-receber-sub').textContent = totReceber > 0 ? `${_lancamentos.filter(l=>l.tipo==='receita'&&l.status==='Pendente').length} em aberto` : 'Nenhuma pendência';
+
+  document.getElementById('fin-rec-titulo').textContent = `Receitas — ${mesNome}`;
+  document.getElementById('fin-desp-titulo').textContent = `Despesas — ${mesNome}`;
+
+  const _row = (l) => {
+    const isRec = l.tipo==='receita';
+    const isPend = l.status==='Pendente';
+    const isCancelado = l.status==='Cancelado';
+    const bg = isCancelado ? 'opacity:.5' : isPend && !isRec ? 'background:var(--red-bg)' : isPend ? 'background:var(--yellow-bg)' : '';
+    const cor = isRec ? 'var(--green)' : 'var(--red)';
+    const sinal = isRec ? '+' : '-';
+    const dataFmt = l.data ? new Date(l.data+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) : '—';
+    const statusBadge = isPend ? `<span style="font-size:0.72rem;background:var(--yellow-bg);color:#B45309;padding:2px 7px;border-radius:100px;font-weight:700">Pendente</span>` :
+                        isCancelado ? `<span style="font-size:0.72rem;background:var(--red-bg);color:var(--red);padding:2px 7px;border-radius:100px;font-weight:700">Cancelado</span>` :
+                        `<span style="font-size:0.72rem;background:var(--green-bg);color:var(--green);padding:2px 7px;border-radius:100px;font-weight:700">Pago</span>`;
+    return `<div class="fin-row" style="${bg};cursor:pointer" onclick="editarLancamento('${l.id}')">
+      <div class="fin-row-icon" style="background:${isRec?'var(--green-bg)':'var(--red-bg)'}">${isRec?'💰':'📤'}</div>
+      <div class="fin-row-info"><strong>${l.descricao}</strong><span>${l.categoria||''}${l.cliente_nome?' · '+l.cliente_nome:''}</span></div>
+      <div class="fin-amount" style="color:${cor}">${sinal} ${fmtShort(l.valor)}</div>
+      ${statusBadge}
+      <span style="font-size:0.72rem;color:var(--text-muted);margin-left:4px">${dataFmt}</span>
+    </div>`;
+  };
+
+  const listaRec = document.getElementById('fin-lista-receitas');
+  listaRec.innerHTML = receitas.length ? receitas.map(_row).join('') : '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:0.85rem">Nenhuma receita lançada este mês.</div>';
+
+  const listaDesp = document.getElementById('fin-lista-despesas');
+  listaDesp.innerHTML = despesas.length ? despesas.map(_row).join('') : '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:0.85rem">Nenhuma despesa lançada este mês.</div>';
+
+  // Resumo
+  const dreBody = document.getElementById('dre-body');
+  const dreRow = (label,val,style)=>{
+    const isTotal = style==='total';
+    const bg = isTotal ? 'var(--blue-light)' : '';
+    const fw = isTotal ? '700' : '500';
+    const cor = val > 0 ? 'var(--green)' : val < 0 ? 'var(--red)' : 'var(--text-muted)';
+    const bt = (style==='subtotal'||isTotal) ? 'border-top:1px solid var(--border);' : '';
     return `<tr style="background:${bg}">
-      <td style="padding:${pt};${bt}font-weight:${fw};font-size:${fs};color:var(--text)">${r.label}</td>
-      <td style="padding:${pt};${bt}text-align:right;font-weight:${fw};font-size:${fs};color:${r.color||'var(--text)'}">${dispVal}</td>
-      <td style="padding:${pt};${bt}text-align:right;font-size:0.76rem;color:var(--text-muted)">${isMeta?'':dispPct}</td>
+      <td style="padding:7px 0;${bt}font-weight:${fw};font-size:0.82rem;color:var(--text)">${label}</td>
+      <td style="padding:7px 0;${bt}text-align:right;font-weight:${fw};font-size:0.82rem;color:${isTotal?'var(--blue)':cor}">${fmtShort(val)}</td>
     </tr>`;
-  }).join('');
+  };
+  dreBody.innerHTML = dreRow('(+) Total de Receitas',totRec,'bold') +
+    dreRow('(-) Total de Despesas',-totDesp,'normal') +
+    dreRow('(=) Resultado do Mês',lucro,'total') +
+    `<tr><td colspan="2" style="padding:6px 0 2px;font-size:0.75rem;color:var(--text-muted)">Margem líquida: ${margem}%</td></tr>`;
+
+  // Pendentes
+  const listaPend = document.getElementById('fin-lista-pendentes');
+  listaPend.innerHTML = pendentes.length ? pendentes.map(l=>{
+    const isRec = l.tipo==='receita';
+    const dataFmt = l.data ? new Date(l.data+'T12:00:00').toLocaleDateString('pt-BR') : 'Sem data';
+    return `<div class="prazo-row" style="cursor:pointer" onclick="editarLancamento('${l.id}')">
+      <div class="prazo-info" style="flex:1"><strong>${l.descricao}</strong><span>${isRec?'A Receber':'A Pagar'} · ${dataFmt}${l.cliente_nome?' · '+l.cliente_nome:''}</span></div>
+      <span style="font-weight:700;color:${isRec?'var(--yellow)':'var(--red)'}">${fmtShort(l.valor)}</span>
+    </div>`;
+  }).join('') : '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.85rem">Nenhuma pendência.</div>';
 }
 
-function exportDRE(){
-  const periodo=document.getElementById('dre-periodo');
-  const label=periodo.options[periodo.selectedIndex].text;
-  const rows=[...document.querySelectorAll('#dre-body tr')];
-  let csv='Conta;Valor;% Receita\n';
-  rows.forEach(r=>{
-    const cells=[...r.querySelectorAll('td')].map(td=>td.textContent.trim().replace(/;/g,','));
-    if(cells.length)csv+=cells.join(';')+'\n';
+function abrirModalLancamento(tipo='receita', id=null){
+  document.getElementById('lanc-overlay').style.display='flex';
+  document.getElementById('lanc-titulo').textContent = id ? 'Editar Lançamento' : (tipo==='receita' ? 'Nova Receita' : 'Nova Despesa');
+  document.getElementById('lanc-id').value = id||'';
+  document.getElementById('lanc-tipo').value = tipo;
+  document.getElementById('lanc-excluir-btn').style.display = id ? 'block' : 'none';
+  _renderLancCats(tipo);
+  if(!id){
+    document.getElementById('lanc-descricao').value='';
+    document.getElementById('lanc-valor').value='';
+    document.getElementById('lanc-data').value=new Date().toISOString().split('T')[0];
+    document.getElementById('lanc-status').value='Pago';
+    document.getElementById('lanc-cliente').value='';
+    document.getElementById('lanc-obs').value='';
+  }
+}
+
+function _renderLancCats(tipo){
+  const sel = document.getElementById('lanc-categoria');
+  const cats = LANC_CATS[tipo]||[];
+  sel.innerHTML = cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+}
+
+function fecharModalLancamento(){
+  document.getElementById('lanc-overlay').style.display='none';
+}
+
+async function editarLancamento(id){
+  const l = _lancamentos.find(x=>x.id===id);
+  if(!l) return;
+  abrirModalLancamento(l.tipo, id);
+  setTimeout(()=>{
+    document.getElementById('lanc-descricao').value = l.descricao||'';
+    document.getElementById('lanc-categoria').value = l.categoria||'';
+    document.getElementById('lanc-valor').value = l.valor||'';
+    document.getElementById('lanc-data').value = l.data||'';
+    document.getElementById('lanc-status').value = l.status||'Pago';
+    document.getElementById('lanc-cliente').value = l.cliente_nome||'';
+    document.getElementById('lanc-obs').value = l.observacoes||'';
+  },50);
+}
+
+async function salvarLancamento(){
+  const id = document.getElementById('lanc-id').value;
+  const payload = {
+    tipo: document.getElementById('lanc-tipo').value,
+    descricao: document.getElementById('lanc-descricao').value.trim(),
+    categoria: document.getElementById('lanc-categoria').value,
+    valor: parseFloat(document.getElementById('lanc-valor').value)||0,
+    data: document.getElementById('lanc-data').value||null,
+    status: document.getElementById('lanc-status').value,
+    cliente_nome: document.getElementById('lanc-cliente').value.trim()||null,
+    observacoes: document.getElementById('lanc-obs').value.trim()||null,
+  };
+  if(!payload.descricao||!payload.valor){alert('Preencha descrição e valor.');return;}
+  let error;
+  if(id){
+    ({error} = await supa.from('lancamentos').update(payload).eq('id',id));
+  } else {
+    ({error} = await supa.from('lancamentos').insert(payload));
+  }
+  if(error){alert('Erro ao salvar: '+error.message);return;}
+  fecharModalLancamento();
+  carregarFinanceiro();
+}
+
+async function excluirLancamento(){
+  const id = document.getElementById('lanc-id').value;
+  if(!id||!confirm('Excluir este lançamento?')) return;
+  const {error} = await supa.from('lancamentos').delete().eq('id',id);
+  if(error){alert('Erro: '+error.message);return;}
+  fecharModalLancamento();
+  carregarFinanceiro();
+}
+
+function exportarFinanceiro(){
+  if(!_lancamentos.length){alert('Nenhum lançamento para exportar.');return;}
+  let csv='Tipo;Descrição;Categoria;Valor;Data;Status;Cliente;Observações\n';
+  _lancamentos.forEach(l=>{
+    csv+=`${l.tipo};${l.descricao||''};${l.categoria||''};${l.valor||0};${l.data||''};${l.status||''};${l.cliente_nome||''};${(l.observacoes||'').replace(/;/g,',')}\n`;
   });
   const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download=`DRE_JusTax_${label.replace(/ /g,'_')}.csv`;
+  a.download=`Financeiro_JusTax_${new Date().toISOString().slice(0,7)}.csv`;
   a.click();
 }
-
-// render DRE on load
-updateDRE();
 
 // ─── DATAJUD ───
 const SUPA_FN = 'https://nbnvgvxgvvlnztxoiqxo.supabase.co/functions/v1/datajud-proxy';

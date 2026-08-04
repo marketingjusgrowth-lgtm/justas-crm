@@ -381,7 +381,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
       <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
       Dashboard
     </div>
-    <div class="nav-item" onclick="nav('clientes',this)">
+    <div class="nav-item" onclick="nav('clientes',this);carregarClientes()">
       <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
       Controle de Clientes
     </div>
@@ -592,8 +592,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
             <label class="cl-drop-item"><input type="checkbox" checked data-col="10" onchange="toggleColuna(this)"> Cidade</label>
           </div>
           <div style="margin-left:auto;display:flex;gap:8px">
-            <button class="btn btn-ghost btn-sm" onclick="showAddColModal()">+ Adicionar coluna</button>
-            <button class="btn btn-blue btn-sm" onclick="openModal('cliente')">+ Criar elemento</button>
+            <button class="btn btn-ghost btn-sm" onclick="exportarCSV('clientes')">⬇ Exportar</button>
+            <button class="btn btn-blue btn-sm" onclick="abrirModalCliente()">+ Novo Cliente</button>
           </div>
         </div>
 
@@ -645,120 +645,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
                 <th style="width:36px;cursor:pointer;text-align:center;color:var(--text-light)" onclick="showAddColModal()" title="Adicionar coluna">+</th>
               </tr>
             </thead>
-            <tbody>
-              <!-- GROUP 1 -->
-              <tr><td colspan="11" style="padding:0;border:none">
-                <div class="group-header">
-                  <div class="group-dot" style="background:#059669"></div>
-                  <span class="group-name">CLIENTES ATIVOS — FIXO</span>
-                  <span class="group-count">4</span>
-                  <span class="group-toggle">▾</span>
-                </div>
-              </td></tr>
-              <tr>
-                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
-                <td><div class="cell"><span class="cell-expand">▶</span><span class="cell-name">Construtora Edifica</span></div></td>
-                <td><div class="cell"><div class="av" style="background:#2563EB">JL</div>Jaílson Leal</div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--orange-bg);color:var(--orange)">● Empresarial</span></div></td>
-                <td><div class="cell cell-muted">set 27, 2024</div></td>
-                <td><div class="cell"><span class="status-cell" style="background:#D1FAE5;color:#065F46">✓ Ativo</span></div></td>
-                <td><div class="cell"><div class="av av-sm" style="background:#2563EB">GR</div><span style="font-size:0.78rem">Gustavo</span></div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--bg);color:var(--text-muted);border:1px solid var(--border)">Mensalidade</span></div></td>
-                <td><div class="cell" style="font-weight:700;color:var(--green)">R$ 3.500/mês</div></td>
-                <td><div class="cell cell-muted">Indicação</div></td>
-                <td><div class="cell cell-muted">Araranguá</div></td>
-              </tr>
-              <tr>
-                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
-                <td><div class="cell"><span class="cell-expand">▶</span><span class="cell-name">Remax Exclusive</span></div></td>
-                <td><div class="cell"><div class="av" style="background:#7C3AED">GP</div>Gabriel Parajar</div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--orange-bg);color:var(--orange)">● Empresarial</span></div></td>
-                <td><div class="cell cell-muted">out 2, 2024</div></td>
-                <td><div class="cell"><span class="status-cell" style="background:#FEF3C7;color:#92400E">⚡ ACELERA</span></div></td>
-                <td><div class="cell"><div class="av av-sm" style="background:#7C3AED">BC</div><span style="font-size:0.78rem">Bruno</span></div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--bg);color:var(--text-muted);border:1px solid var(--border)">Fixo</span></div></td>
-                <td><div class="cell" style="font-weight:700;color:var(--green)">R$ 8.000</div></td>
-                <td><div class="cell cell-muted">Tráfego Pago</div></td>
-                <td><div class="cell cell-muted">Vitória</div></td>
-              </tr>
-              <tr>
-                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
-                <td><div class="cell"><span class="cell-expand">▶</span><span class="cell-name">Conecta Consultoria</span></div></td>
-                <td><div class="cell"><div class="av" style="background:#059669">AN</div>Ana</div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--purple-bg);color:var(--purple)">● Tributário</span></div></td>
-                <td><div class="cell cell-muted">out 28, 2024</div></td>
-                <td><div class="cell"><span class="status-cell" style="background:#D1FAE5;color:#065F46">✓ Ativo</span></div></td>
-                <td><div class="cell"><div class="av av-sm" style="background:#059669">AL</div><span style="font-size:0.78rem">Ana Lima</span></div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--bg);color:var(--text-muted);border:1px solid var(--border)">Êxito 20%</span></div></td>
-                <td><div class="cell" style="font-weight:700;color:var(--green)">R$ 42.000</div></td>
-                <td><div class="cell cell-muted">Indicação</div></td>
-                <td><div class="cell cell-muted">Indaiatuba</div></td>
-              </tr>
-              <tr>
-                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
-                <td><div class="cell"><span class="cell-expand">▶</span><span class="cell-name">G Prime Imóveis</span></div></td>
-                <td><div class="cell"><div class="av" style="background:#EA580C">MK</div>Márcio</div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--orange-bg);color:var(--orange)">● Empresarial</span></div></td>
-                <td><div class="cell cell-muted">nov 21, 2024</div></td>
-                <td><div class="cell"><span class="status-cell" style="background:#D1FAE5;color:#065F46">✓ Ativo</span></div></td>
-                <td><div class="cell"><div class="av av-sm" style="background:#2563EB">GR</div><span style="font-size:0.78rem">Gustavo</span></div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--bg);color:var(--text-muted);border:1px solid var(--border)">Mensalidade</span></div></td>
-                <td><div class="cell" style="font-weight:700;color:var(--green)">R$ 2.200/mês</div></td>
-                <td><div class="cell cell-muted">Social Media</div></td>
-                <td><div class="cell cell-muted">Balneário</div></td>
-              </tr>
-              <tr><td colspan="11" style="padding:0">
-                <div class="add-row" onclick="openModal('cliente')">+ Adicionar elemento</div>
-              </td></tr>
-
-              <!-- GROUP 2 -->
-              <tr><td colspan="11" style="padding:0;border:none">
-                <div class="group-header">
-                  <div class="group-dot" style="background:#2563EB"></div>
-                  <span class="group-name">CLIENTES ATIVOS — ÊXITO</span>
-                  <span class="group-count">3</span>
-                  <span class="group-toggle">▾</span>
-                </div>
-              </td></tr>
-              <tr>
-                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
-                <td><div class="cell"><span class="cell-expand">▶</span><span class="cell-name">Maria Fernanda</span></div></td>
-                <td><div class="cell"><div class="av" style="background:#2563EB">MF</div>Maria Fernanda</div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--green-bg);color:var(--green)">● Trabalhista</span></div></td>
-                <td><div class="cell cell-muted">jan 7, 2025</div></td>
-                <td><div class="cell"><span class="status-cell" style="background:#DBEAFE;color:#1D4ED8">⚡ Em andamento</span></div></td>
-                <td><div class="cell"><div class="av av-sm" style="background:#2563EB">GR</div><span style="font-size:0.78rem">Gustavo</span></div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--bg);color:var(--text-muted);border:1px solid var(--border)">Êxito 30%</span></div></td>
-                <td><div class="cell" style="font-weight:700;color:var(--blue)">R$ 18.000 est.</div></td>
-                <td><div class="cell cell-muted">Indicação</div></td>
-                <td><div class="cell cell-muted">São Paulo</div></td>
-              </tr>
-              <tr>
-                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
-                <td><div class="cell"><span class="cell-expand">▶</span><span class="cell-name">João Pedro Alves</span></div></td>
-                <td><div class="cell"><div class="av" style="background:#7C3AED">JP</div>João Pedro</div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--purple-bg);color:var(--purple)">● Tributário</span></div></td>
-                <td><div class="cell cell-muted">jan 23, 2025</div></td>
-                <td><div class="cell"><span class="status-cell" style="background:#DBEAFE;color:#1D4ED8">⚡ Em andamento</span></div></td>
-                <td><div class="cell"><div class="av av-sm" style="background:#2563EB">GR</div><span style="font-size:0.78rem">Gustavo</span></div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--bg);color:var(--text-muted);border:1px solid var(--border)">Êxito 20%</span></div></td>
-                <td><div class="cell" style="font-weight:700;color:var(--blue)">R$ 45.000 est.</div></td>
-                <td><div class="cell cell-muted">Tráfego Pago</div></td>
-                <td><div class="cell cell-muted">Florianópolis</div></td>
-              </tr>
-              <tr><td colspan="11" style="padding:0">
-                <div class="add-row" onclick="openModal('cliente')">+ Adicionar elemento</div>
-              </td></tr>
-
-              <!-- GROUP 3 -->
-              <tr><td colspan="11" style="padding:0;border:none">
-                <div class="group-header">
-                  <div class="group-dot" style="background:#94A3B8"></div>
-                  <span class="group-name">ENCERRADOS</span>
-                  <span class="group-count">2</span>
-                  <span class="group-toggle">▸</span>
-                </div>
-              </td></tr>
+            <tbody id="clientes-tbody">
+              <tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted)">Carregando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1194,6 +1082,49 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
   </div>
 </div>
 
+<!-- CLIENTE MODAL -->
+<div class="overlay" id="cliente-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center;padding:20px" onclick="if(event.target.id==='cliente-overlay')fecharModalCliente()">
+  <div class="modal" style="max-width:600px;width:100%">
+    <div class="modal-head">
+      <h2 id="cliente-modal-titulo">Novo Cliente</h2>
+      <button class="modal-x" onclick="fecharModalCliente()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-section form-full">Dados do Cliente</div>
+        <div class="fg form-full"><label>Nome do Cliente / Empresa *</label><input id="cl-elemento" type="text" placeholder="Ex: Construtora Edifica, Maria Silva..."/></div>
+        <div class="fg"><label>Contato (pessoa responsável)</label><input id="cl-contato" type="text" placeholder="Nome do contato"/></div>
+        <div class="fg"><label>Cidade</label><input id="cl-cidade" type="text" placeholder="Ex: São Paulo, Florianópolis..."/></div>
+        <div class="form-section form-full">Informações do Contrato</div>
+        <div class="fg"><label>Área do Direito</label>
+          <select id="cl-area"><option value="">Selecionar...</option><option>Trabalhista</option><option>Tributário</option><option>Família</option><option>Empresarial</option><option>Cível</option><option>Previdenciário</option><option>Criminal</option><option>Imobiliário</option></select>
+        </div>
+        <div class="fg"><label>Data de Entrada</label><input id="cl-data" type="date"/></div>
+        <div class="fg"><label>Status</label>
+          <select id="cl-status"><option>Ativo</option><option>Em andamento</option><option>ACELERA</option><option>Encerrado</option></select>
+        </div>
+        <div class="fg"><label>Responsável</label>
+          <select id="cl-resp"><option>Gustavo Rafael</option><option>Ana Lima</option><option>Bruno Costa</option></select>
+        </div>
+        <div class="fg"><label>Tipo de Honorário</label>
+          <select id="cl-honorario"><option value="">Selecionar...</option><option>Fixo</option><option>Mensalidade</option><option>Êxito</option><option>Misto</option></select>
+        </div>
+        <div class="fg"><label>Valor do Contrato</label><input id="cl-valor" type="text" placeholder="Ex: R$ 3.500/mês"/></div>
+        <div class="fg"><label>Origem</label>
+          <select id="cl-origem"><option value="">Selecionar...</option><option>Indicação</option><option>Tráfego Pago</option><option>Social Media</option><option>Site Orgânico</option><option>WhatsApp</option></select>
+        </div>
+        <div class="fg form-full"><label>Observações</label><textarea id="cl-obs" rows="2" placeholder="Notas sobre o cliente..."></textarea></div>
+      </div>
+    </div>
+    <input type="hidden" id="cl-edit-id"/>
+    <div class="modal-foot">
+      <button id="cl-btn-excluir" style="display:none;margin-right:auto" class="btn" onclick="excluirCliente()">🗑 Excluir</button>
+      <button class="btn btn-ghost" onclick="fecharModalCliente()">Cancelar</button>
+      <button class="btn btn-blue" onclick="salvarCliente()">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <!-- PROCESSO MODAL -->
 <div class="overlay" id="proc-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center;padding:20px" onclick="if(event.target.id==='proc-overlay')fecharModalProcesso()">
   <div class="modal" style="max-width:580px;width:100%">
@@ -1385,6 +1316,7 @@ function enterApp(user){
   setTimeout(()=>{
     carregarProcessos().catch(e=>console.error('carregarProcessos erro:',e));
     carregarLeads().catch(e=>console.error('carregarLeads erro:',e));
+    carregarClientes().catch(e=>console.error('carregarClientes erro:',e));
   }, 300);
 }
 
@@ -2720,8 +2652,166 @@ async function carregarLeads(){
   initKanbanCardActions();
 }
 
+// ─── CLIENTES: CARREGAR DO SUPABASE ───
+const STATUS_CLIENTE_STYLE = {
+  'Ativo':         {bg:'#D1FAE5',color:'#065F46', prefix:'✓ '},
+  'Em andamento':  {bg:'#DBEAFE',color:'#1D4ED8', prefix:'⚡ '},
+  'ACELERA':       {bg:'#FEF3C7',color:'#92400E', prefix:'⚡ '},
+  'Encerrado':     {bg:'#F1F5F9',color:'#64748B', prefix:''},
+};
+const AREA_BADGE_STYLE = {
+  'Trabalhista':   {bg:'var(--green-bg)',color:'var(--green)'},
+  'Tributário':    {bg:'var(--purple-bg)',color:'var(--purple)'},
+  'Família':       {bg:'#FCE7F3',color:'#9D174D'},
+  'Empresarial':   {bg:'var(--orange-bg)',color:'var(--orange)'},
+  'Cível':         {bg:'#E0F2FE',color:'#0369A1'},
+  'Previdenciário':{bg:'#F3E8FF',color:'#7C3AED'},
+  'Criminal':      {bg:'#FEE2E2',color:'#991B1B'},
+  'Imobiliário':   {bg:'#FEF9C3',color:'#854D0E'},
+};
+const GRUPOS_CLIENTES = [
+  {nome:'CLIENTES ATIVOS — FIXO',  dot:'#059669', filtro: c=>['Ativo','ACELERA'].includes(c.status) && ['Fixo','Mensalidade','Misto'].includes(c.honorario)},
+  {nome:'CLIENTES ATIVOS — ÊXITO', dot:'#2563EB', filtro: c=>['Ativo','Em andamento','ACELERA'].includes(c.status) && c.honorario==='Êxito'},
+  {nome:'ATIVOS — OUTROS',         dot:'#7C3AED', filtro: c=>['Ativo','Em andamento','ACELERA'].includes(c.status) && !['Fixo','Mensalidade','Misto','Êxito'].includes(c.honorario)},
+  {nome:'ENCERRADOS',              dot:'#94A3B8', filtro: c=>c.status==='Encerrado'},
+];
+
+async function carregarClientes(){
+  const tbody = document.getElementById('clientes-tbody');
+  if(!tbody) return;
+  tbody.innerHTML='<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted)">Carregando...</td></tr>';
+  const {data, error} = await supa.from('clientes').select('*').order('created_at',{ascending:false});
+  if(error){
+    tbody.innerHTML=`<tr><td colspan="11" style="text-align:center;padding:20px;color:var(--red)">${error.message}</td></tr>`;
+    return;
+  }
+  if(!data||data.length===0){
+    tbody.innerHTML='<tr><td colspan="11" style="text-align:center;padding:40px;color:var(--text-muted)">Nenhum cliente cadastrado. Clique em "+ Novo Cliente".</td></tr>';
+    return;
+  }
+  let html='';
+  GRUPOS_CLIENTES.forEach(grupo=>{
+    const rows = data.filter(grupo.filtro);
+    html+=`<tr><td colspan="11" style="padding:0;border:none"><div class="group-header">
+      <div class="group-dot" style="background:${grupo.dot}"></div>
+      <span class="group-name">${grupo.nome}</span>
+      <span class="group-count">${rows.length}</span>
+      <span class="group-toggle">▾</span>
+    </div></td></tr>`;
+    rows.forEach(c=>{
+      const ss = STATUS_CLIENTE_STYLE[c.status]||STATUS_CLIENTE_STYLE['Ativo'];
+      const ab = AREA_BADGE_STYLE[c.area]||{bg:'#F1F5F9',color:'#64748B'};
+      const av = (c.responsavel||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+      const avBg = ['#2563EB','#059669','#7C3AED'][(av.charCodeAt(0)||0)%3];
+      const dataFmt = c.data_entrada ? new Date(c.data_entrada+'T12:00:00').toLocaleDateString('pt-BR',{day:'numeric',month:'short',year:'numeric'}) : '—';
+      html+=`<tr data-id="${c.id}" onclick="abrirModalCliente('${c.id}')" style="cursor:pointer">
+        <td onclick="event.stopPropagation()"><input type="checkbox" style="accent-color:var(--blue)" onchange="atualizarBarraAcoes()" onclick="event.stopPropagation()"/></td>
+        <td><div class="cell"><span class="cell-name">${c.elemento||'—'}</span></div></td>
+        <td><div class="cell">${c.contato?`<div class="av av-sm" style="background:${avBg}">${av}</div>${c.contato}`:''}</div></td>
+        <td><div class="cell"><span class="badge" style="background:${ab.bg};color:${ab.color}">● ${c.area||'—'}</span></div></td>
+        <td><div class="cell cell-muted">${dataFmt}</div></td>
+        <td><div class="cell"><span class="status-cell" style="background:${ss.bg};color:${ss.color};cursor:default">${ss.prefix}${c.status||'Ativo'}</span></div></td>
+        <td><div class="cell"><div class="av av-sm" style="background:${avBg}">${av}</div><span style="font-size:0.78rem">${c.responsavel||''}</span></div></td>
+        <td><div class="cell"><span class="badge" style="background:var(--bg);color:var(--text-muted);border:1px solid var(--border)">${c.honorario||'—'}</span></div></td>
+        <td><div class="cell" style="font-weight:700;color:var(--green)">${c.valor_contrato||'—'}</div></td>
+        <td><div class="cell cell-muted">${c.origem||'—'}</div></td>
+        <td><div class="cell cell-muted">${c.cidade||'—'}</div></td>
+      </tr>`;
+    });
+    html+=`<tr><td colspan="11" style="padding:0"><div class="add-row" onclick="abrirModalCliente()">+ Adicionar cliente</div></td></tr>`;
+  });
+  tbody.innerHTML=html;
+}
+
+function abrirModalCliente(id){
+  document.getElementById('cl-edit-id').value = id||'';
+  document.getElementById('cliente-modal-titulo').textContent = id ? 'Editar Cliente' : 'Novo Cliente';
+  document.getElementById('cl-btn-excluir').style.display = id ? '' : 'none';
+  ['cl-elemento','cl-contato','cl-cidade','cl-valor','cl-obs'].forEach(i=>{ const el=document.getElementById(i); if(el) el.value=''; });
+  ['cl-area','cl-status','cl-resp','cl-honorario','cl-origem'].forEach(i=>{ const el=document.getElementById(i); if(el) el.selectedIndex=0; });
+  document.getElementById('cl-data').value='';
+  if(id){
+    supa.from('clientes').select('*').eq('id',id).single().then(({data})=>{
+      if(!data) return;
+      document.getElementById('cl-elemento').value = data.elemento||'';
+      document.getElementById('cl-contato').value  = data.contato||'';
+      document.getElementById('cl-cidade').value   = data.cidade||'';
+      document.getElementById('cl-valor').value    = data.valor_contrato||'';
+      document.getElementById('cl-obs').value      = data.observacoes||'';
+      document.getElementById('cl-data').value     = data.data_entrada||'';
+      const setS=(id,v)=>{const el=document.getElementById(id);if(el&&v)[...el.options].forEach((o,i)=>{if(o.value===v||o.text===v)el.selectedIndex=i;});};
+      setS('cl-area', data.area);
+      setS('cl-status', data.status);
+      setS('cl-resp', data.responsavel);
+      setS('cl-honorario', data.honorario);
+      setS('cl-origem', data.origem);
+    });
+  }
+  document.getElementById('cliente-overlay').style.display='flex';
+}
+
+function fecharModalCliente(){
+  document.getElementById('cliente-overlay').style.display='none';
+}
+
+async function salvarCliente(){
+  const elemento = document.getElementById('cl-elemento').value.trim();
+  if(!elemento){ document.getElementById('cl-elemento').style.borderColor='var(--red)'; return; }
+  const editId = document.getElementById('cl-edit-id').value;
+  const payload = {
+    elemento,
+    contato:        document.getElementById('cl-contato').value.trim()||null,
+    cidade:         document.getElementById('cl-cidade').value.trim()||null,
+    area:           document.getElementById('cl-area').value||null,
+    data_entrada:   document.getElementById('cl-data').value||null,
+    status:         document.getElementById('cl-status').value||'Ativo',
+    responsavel:    document.getElementById('cl-resp').value||null,
+    honorario:      document.getElementById('cl-honorario').value||null,
+    valor_contrato: document.getElementById('cl-valor').value.trim()||null,
+    origem:         document.getElementById('cl-origem').value||null,
+    observacoes:    document.getElementById('cl-obs').value.trim()||null,
+  };
+  let error;
+  if(editId){
+    ({error} = await supa.from('clientes').update(payload).eq('id',editId));
+  } else {
+    ({error} = await supa.from('clientes').insert(payload));
+  }
+  if(error){ alert('Erro ao salvar: '+error.message); return; }
+  fecharModalCliente();
+  carregarClientes();
+  showToast(editId ? '✓ Cliente atualizado!' : '✓ Cliente cadastrado!');
+}
+
+async function excluirCliente(){
+  const id = document.getElementById('cl-edit-id').value;
+  if(!id||!confirm('Excluir este cliente?')) return;
+  const {error} = await supa.from('clientes').delete().eq('id',id);
+  if(error){ alert('Erro: '+error.message); return; }
+  fecharModalCliente();
+  carregarClientes();
+  showToast('✓ Cliente excluído!','#EF4444');
+}
+
 // ─── EXPORTAR CSV ───
 const EXPORT_CONFIG = {
+  clientes: {
+    nome: 'Clientes',
+    colunas: [
+      {campo:'elemento',       label:'Cliente / Empresa'},
+      {campo:'contato',        label:'Contato'},
+      {campo:'cidade',         label:'Cidade'},
+      {campo:'area',           label:'Área do Direito'},
+      {campo:'data_entrada',   label:'Data de Entrada'},
+      {campo:'status',         label:'Status'},
+      {campo:'responsavel',    label:'Responsável'},
+      {campo:'honorario',      label:'Honorário'},
+      {campo:'valor_contrato', label:'Valor Contrato'},
+      {campo:'origem',         label:'Origem'},
+      {campo:'observacoes',    label:'Observações'},
+      {campo:'created_at',     label:'Data Cadastro'},
+    ]
+  },
   leads: {
     nome: 'Pipeline_Leads',
     colunas: [

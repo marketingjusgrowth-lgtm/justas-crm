@@ -2933,14 +2933,31 @@ function filtrarPrazos(tipo, chip){
   chip.classList.add('active');
   const tbody = document.getElementById('prazos-tbody');
   if(!tbody) return;
-  tbody.querySelectorAll('tr').forEach(row=>{
+  const rows = [...tbody.querySelectorAll('tr')];
+
+  // Passo 1: filtrar linhas de tarefa
+  rows.forEach(row=>{
     if(row.querySelector('.group-header')) return;
     const grupo = row.dataset.grupo||'';
     const badges = [...row.querySelectorAll('.badge')].map(b=>b.textContent);
-    const isUrgent = badges.some(b=>b.includes('Urgente'));
-    if(tipo==='urgente') row.style.display = isUrgent ? '' : 'none';
-    else if(tipo==='semana') row.style.display = (grupo==='HOJE'||grupo==='ESTA SEMANA'||grupo==='VENCIDOS') ? '' : 'none';
-    else row.style.display = '';
+    let show = true;
+    if(tipo==='urgente')      show = badges.some(b=>b.includes('Urgente'));
+    else if(tipo==='semana')  show = ['HOJE','ESTA SEMANA','VENCIDOS'].includes(grupo);
+    else if(tipo==='mes')     show = ['HOJE','ESTA SEMANA','ESTE MÊS','VENCIDOS'].includes(grupo);
+    row.style.display = show ? '' : 'none';
+  });
+
+  // Passo 2: ocultar cabeçalhos de grupo que não têm linhas visíveis
+  rows.forEach(row=>{
+    if(!row.querySelector('.group-header')) return;
+    if(tipo==='todos'){ row.style.display=''; return; }
+    let next = row.nextElementSibling;
+    let hasVisible = false;
+    while(next && !next.querySelector('.group-header')){
+      if(next.style.display !== 'none') hasVisible = true;
+      next = next.nextElementSibling;
+    }
+    row.style.display = hasVisible ? '' : 'none';
   });
 }
 

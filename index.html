@@ -378,7 +378,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
     </div>
 
     <div class="sidebar-section">Principal</div>
-    <div class="nav-item active" onclick="nav('dashboard',this)">
+    <div class="nav-item active" onclick="nav('dashboard',this);carregarDashboard()">
       <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
       Dashboard
     </div>
@@ -458,23 +458,23 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
           <div class="metrics-row">
             <div class="metric-card">
               <div class="metric-top"><span class="metric-label">Leads no Pipeline</span><div class="metric-icon" style="background:#EFF6FF">🎯</div></div>
-              <div class="metric-value" style="color:var(--blue)">17</div>
-              <div class="metric-sub"><em>+4</em> esta semana</div>
+              <div class="metric-value" id="dash-leads" style="color:var(--blue)">0</div>
+              <div class="metric-sub" style="color:var(--text-muted)">Nenhum lead cadastrado</div>
             </div>
             <div class="metric-card">
               <div class="metric-top"><span class="metric-label">Clientes Ativos</span><div class="metric-icon" style="background:#D1FAE5">👤</div></div>
-              <div class="metric-value" style="color:var(--green)">48</div>
-              <div class="metric-sub"><em>+2</em> este mês</div>
+              <div class="metric-value" id="dash-clientes" style="color:var(--green)">0</div>
+              <div class="metric-sub" style="color:var(--text-muted)">Nenhum cliente cadastrado</div>
             </div>
             <div class="metric-card">
-              <div class="metric-top"><span class="metric-label">Receita Mensal</span><div class="metric-icon" style="background:#FEF3C7">💰</div></div>
-              <div class="metric-value" style="color:var(--yellow)">R$84k</div>
-              <div class="metric-sub"><em>+18%</em> vs mês anterior</div>
+              <div class="metric-top"><span class="metric-label">Processos Ativos</span><div class="metric-icon" style="background:#FEF3C7">⚖️</div></div>
+              <div class="metric-value" id="dash-processos" style="color:var(--yellow)">0</div>
+              <div class="metric-sub" style="color:var(--text-muted)">Nenhum processo cadastrado</div>
             </div>
             <div class="metric-card">
-              <div class="metric-top"><span class="metric-label">Prazos Críticos</span><div class="metric-icon" style="background:#FEE2E2">⚖️</div></div>
-              <div class="metric-value" style="color:var(--red)">3</div>
-              <div class="metric-sub" style="color:var(--red)">vencem hoje ou amanhã</div>
+              <div class="metric-top"><span class="metric-label">Prazos em Aberto</span><div class="metric-icon" style="background:#FEE2E2">📅</div></div>
+              <div class="metric-value" id="dash-prazos" style="color:var(--red)">0</div>
+              <div class="metric-sub" id="dash-prazos-sub" style="color:var(--text-muted)">Nenhum prazo pendente</div>
             </div>
           </div>
 
@@ -482,58 +482,27 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
             <!-- Left -->
             <div style="display:flex;flex-direction:column;gap:14px">
               <div class="card-block">
-                <div class="card-head"><h3>Fechamentos por mês (2025)</h3></div>
-                <div style="padding:16px">
-                  <div class="chart-wrap">
-                    <div class="chart-col"><div class="chart-bar" style="height:38%;background:var(--blue-mid)"></div><span class="chart-lbl">Jan</span></div>
-                    <div class="chart-col"><div class="chart-bar" style="height:52%;background:var(--blue-mid)"></div><span class="chart-lbl">Fev</span></div>
-                    <div class="chart-col"><div class="chart-bar" style="height:44%;background:var(--blue-mid)"></div><span class="chart-lbl">Mar</span></div>
-                    <div class="chart-col"><div class="chart-bar" style="height:68%;background:var(--blue-mid)"></div><span class="chart-lbl">Abr</span></div>
-                    <div class="chart-col"><div class="chart-bar" style="height:58%;background:var(--blue-mid)"></div><span class="chart-lbl">Mai</span></div>
-                    <div class="chart-col"><div class="chart-bar" style="height:80%;background:var(--blue-mid)"></div><span class="chart-lbl">Jun</span></div>
-                    <div class="chart-col"><div class="chart-bar" style="height:100%;background:var(--blue)"></div><span class="chart-lbl">Jul</span></div>
-                  </div>
-                </div>
-              </div>
-              <div class="card-block">
                 <div class="card-head"><h3>Atividades Recentes</h3></div>
-                <div style="padding:4px 16px">
-                  <div class="act-row"><div class="act-dot" style="background:var(--green)"></div><div><div class="act-text"><strong>Maria Fernanda</strong> assinou contrato — Trabalhista</div><div class="act-time">Há 20 min</div></div></div>
-                  <div class="act-row"><div class="act-dot" style="background:var(--blue)"></div><div><div class="act-text">Novo lead <strong>Carlos Eduardo</strong> via tráfego pago</div><div class="act-time">Há 1h</div></div></div>
-                  <div class="act-row"><div class="act-dot" style="background:var(--yellow)"></div><div><div class="act-text">Proposta enviada para <strong>Roberta Lima</strong> — Tributário</div><div class="act-time">Há 3h</div></div></div>
-                  <div class="act-row"><div class="act-dot" style="background:#0891B2)"></div><div><div class="act-text">E-proc sincronizou <strong>2 novos prazos</strong> automaticamente</div><div class="act-time">Há 4h · <span class="epoc-badge">E-proc</span></div></div></div>
-                  <div class="act-row"><div class="act-dot" style="background:var(--red)"></div><div><div class="act-text">⚠ Prazo: <strong>Agravo Regimental</strong> vence hoje</div><div class="act-time">STJ · Proc. 0001234</div></div></div>
+                <div id="dash-atividades" style="padding:20px 16px;text-align:center;color:var(--text-muted);font-size:0.85rem">
+                  Nenhuma atividade registrada ainda.<br>Comece cadastrando clientes, leads ou processos.
                 </div>
               </div>
             </div>
             <!-- Right -->
             <div style="display:flex;flex-direction:column;gap:14px">
               <div class="card-block">
-                <div class="card-head"><h3>⚠ Prazos Críticos</h3><span class="badge" style="background:var(--red-bg);color:var(--red)">3 urgentes</span></div>
-                <div style="padding:4px 16px">
-                  <div class="prazo-row"><div class="prazo-info" style="flex:1"><strong>Agravo Regimental</strong><span>João Alves · STJ</span></div><span class="p-tag p-urgent">HOJE</span></div>
-                  <div class="prazo-row"><div class="prazo-info" style="flex:1"><strong>Contestação Trabalhista</strong><span>Ana Costa · TRT-SP</span></div><span class="p-tag p-urgent">1 dia</span></div>
-                  <div class="prazo-row"><div class="prazo-info" style="flex:1"><strong>Recurso Inominado</strong><span>Pedro Santos · TJSP</span></div><span class="p-tag p-warn">3 dias</span></div>
-                  <div class="prazo-row"><div class="prazo-info" style="flex:1"><strong>Audiência de Conciliação</strong><span>Maria Lima · Vara do Trabalho</span></div><span class="p-tag p-ok">7 dias</span></div>
+                <div class="card-head"><h3>Prazos Críticos</h3><span id="dash-prazos-badge" class="badge" style="background:var(--red-bg);color:var(--red);display:none"></span></div>
+                <div id="dash-prazos-lista" style="padding:20px 16px;text-align:center;color:var(--text-muted);font-size:0.85rem">
+                  Nenhum prazo crítico no momento.
                 </div>
               </div>
               <div class="card-block">
-                <div class="card-head"><h3>Clientes por Área</h3></div>
+                <div class="card-head"><h3>Tarefas Pendentes por Prioridade</h3></div>
                 <div style="padding:12px 16px">
-                  <div class="prog-row"><div class="prog-label"><span>Trabalhista</span><span style="color:var(--text-muted)">38%</span></div><div class="prog-bar"><div class="prog-fill" style="width:38%;background:var(--blue)"></div></div></div>
-                  <div class="prog-row"><div class="prog-label"><span>Tributário</span><span style="color:var(--text-muted)">24%</span></div><div class="prog-bar"><div class="prog-fill" style="width:24%;background:var(--purple)"></div></div></div>
-                  <div class="prog-row"><div class="prog-label"><span>Família</span><span style="color:var(--text-muted)">18%</span></div><div class="prog-bar"><div class="prog-fill" style="width:18%;background:var(--green)"></div></div></div>
-                  <div class="prog-row"><div class="prog-label"><span>Empresarial</span><span style="color:var(--text-muted)">12%</span></div><div class="prog-bar"><div class="prog-fill" style="width:12%;background:var(--yellow)"></div></div></div>
-                  <div class="prog-row"><div class="prog-label"><span>Cível</span><span style="color:var(--text-muted)">8%</span></div><div class="prog-bar"><div class="prog-fill" style="width:8%;background:var(--orange)"></div></div></div>
-                </div>
-              </div>
-              <div class="card-block">
-                <div class="card-head"><h3>E-proc Status</h3><span class="epoc-badge">Conectado</span></div>
-                <div style="padding:12px 16px;font-size:0.82rem;color:var(--text-muted);display:flex;flex-direction:column;gap:6px">
-                  <div style="display:flex;justify-content:space-between"><span>Última sincronização</span><strong style="color:var(--text)">Hoje 14:32</strong></div>
-                  <div style="display:flex;justify-content:space-between"><span>Prazos sincronizados</span><strong style="color:var(--text)">31 processos</strong></div>
-                  <div style="display:flex;justify-content:space-between"><span>Próxima sincronização</span><strong style="color:var(--text)">Em 2h</strong></div>
-                  <button class="btn btn-ghost btn-sm" style="margin-top:4px" onclick="syncEproc()">🔄 Sincronizar agora</button>
+                  <div class="prog-row"><div class="prog-label"><span>Urgente</span><span id="dash-prio-urgente" style="color:var(--text-muted)">0</span></div><div class="prog-bar"><div id="dash-bar-urgente" class="prog-fill" style="width:0%;background:var(--red)"></div></div></div>
+                  <div class="prog-row"><div class="prog-label"><span>Alta</span><span id="dash-prio-alta" style="color:var(--text-muted)">0</span></div><div class="prog-bar"><div id="dash-bar-alta" class="prog-fill" style="width:0%;background:var(--yellow)"></div></div></div>
+                  <div class="prog-row"><div class="prog-label"><span>Média</span><span id="dash-prio-media" style="color:var(--text-muted)">0</span></div><div class="prog-bar"><div id="dash-bar-media" class="prog-fill" style="width:0%;background:var(--blue)"></div></div></div>
+                  <div class="prog-row"><div class="prog-label"><span>Baixa</span><span id="dash-prio-baixa" style="color:var(--text-muted)">0</span></div><div class="prog-bar"><div id="dash-bar-baixa" class="prog-fill" style="width:0%;background:#94A3B8"></div></div></div>
                 </div>
               </div>
             </div>
@@ -799,44 +768,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
             </thead>
             <tbody id="prazos-tbody">
               <tr id="prazos-loading"><td colspan="10" style="text-align:center;padding:30px;color:var(--text-muted)">Carregando prazos...</td></tr>
-              <tr style="display:none"><td colspan="10" style="padding:0;border:none"><div class="group-header"><div class="group-dot" style="background:#DC2626"></div><span class="group-name">HOJE</span><span class="group-count">2</span><span class="group-toggle">▾</span></div></td></tr>
-              <tr style="background:#FFF5F5">
-                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
-                <td><div class="cell cell-name">Protocolar Agravo Regimental</div></td>
-                <td><div class="cell" style="font-size:0.77rem;color:var(--blue)">0001234-12.2025</div></td>
-                <td><div class="cell"><div class="av av-sm">JA</div>João Alves</div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--red-bg);color:var(--red)">Prazo Processual</span></div></td>
-                <td><div class="cell"><span class="p-tag p-urgent">HOJE</span></div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--red-bg);color:var(--red)">🔥 Urgente</span></div></td>
-                <td><div class="cell"><span class="epoc-badge" style="font-size:0.68rem">E-proc</span></div></td>
-                <td><div class="cell"><div class="av av-sm" style="background:#2563EB">GR</div></div></td>
-                <td><div class="cell"><span class="status-cell" style="background:var(--yellow-bg);color:var(--yellow)">Pendente</span></div></td>
-              </tr>
-              <tr style="background:#FFF5F5">
-                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
-                <td><div class="cell cell-name">Ligar para lead Carlos Eduardo</div></td>
-                <td><div class="cell cell-muted">—</div></td>
-                <td><div class="cell"><div class="av av-sm" style="background:#EA580C">CE</div>Carlos Eduardo</div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--blue-mid);color:#1D4ED8">Atendimento</span></div></td>
-                <td><div class="cell"><span class="p-tag p-urgent">HOJE</span></div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--yellow-bg);color:var(--yellow)">⚠ Alta</span></div></td>
-                <td><div class="cell cell-muted">Manual</div></td>
-                <td><div class="cell"><div class="av av-sm" style="background:#2563EB">GR</div></div></td>
-                <td><div class="cell"><span class="status-cell" style="background:var(--yellow-bg);color:var(--yellow)">Pendente</span></div></td>
-              </tr>
-              <tr><td colspan="10" style="padding:0;border:none"><div class="group-header"><div class="group-dot" style="background:#D97706"></div><span class="group-name">ESTA SEMANA</span><span class="group-count">3</span><span class="group-toggle">▾</span></div></td></tr>
-              <tr>
-                <td><input type="checkbox" style="accent-color:var(--blue)"/></td>
-                <td><div class="cell cell-name">Contestação Trabalhista</div></td>
-                <td><div class="cell" style="font-size:0.77rem;color:var(--blue)">0002345-33.2025</div></td>
-                <td><div class="cell"><div class="av av-sm" style="background:#059669">AC</div>Ana Costa</div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--red-bg);color:var(--red)">Prazo Processual</span></div></td>
-                <td><div class="cell"><span class="p-tag p-urgent">1 dia</span></div></td>
-                <td><div class="cell"><span class="badge" style="background:var(--red-bg);color:var(--red)">🔥 Urgente</span></div></td>
-                <td><div class="cell"><span class="epoc-badge" style="font-size:0.68rem">E-proc</span></div></td>
-                <td><div class="cell"><div class="av av-sm" style="background:#059669">AL</div></div></td>
-                <td><div class="cell"><span class="status-cell" style="background:#DBEAFE;color:#1D4ED8">Em andamento</span></div></td>
-              </tr>
             </tbody>
           </table>
         </div>
@@ -1330,6 +1261,7 @@ function enterApp(user){
     carregarProcessos().catch(e=>console.error('carregarProcessos erro:',e));
     carregarLeads().catch(e=>console.error('carregarLeads erro:',e));
     carregarClientes().catch(e=>console.error('carregarClientes erro:',e));
+    carregarDashboard().catch(e=>console.error('carregarDashboard erro:',e));
   }, 300);
 }
 
@@ -2333,6 +2265,62 @@ function getPrazoGrupo(dataPrazo){
   if(diff<7)   return 'ESTA SEMANA';
   if(diff<=30) return 'ESTE MÊS';
   return 'FUTUROS';
+}
+
+async function carregarDashboard(){
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+
+  const [resLeads, resClientes, resProcessos, resPrazos] = await Promise.all([
+    supa.from('leads').select('id', {count:'exact', head:true}),
+    supa.from('clientes').select('id', {count:'exact', head:true}).neq('tipo','ENCERRADOS'),
+    supa.from('processos').select('id', {count:'exact', head:true}),
+    supa.from('prazos').select('id,data_prazo,prioridade,status').neq('status','Concluído'),
+  ]);
+
+  // Métricas
+  document.getElementById('dash-leads').textContent = resLeads.count ?? 0;
+  document.getElementById('dash-clientes').textContent = resClientes.count ?? 0;
+  document.getElementById('dash-processos').textContent = resProcessos.count ?? 0;
+
+  const prazos = resPrazos.data || [];
+  const pendentes = prazos.filter(p => p.status !== 'Concluído');
+  const criticos  = pendentes.filter(p => {
+    if(!p.data_prazo) return false;
+    const d = new Date(p.data_prazo+'T12:00:00');
+    return Math.floor((d-hoje)/(1000*60*60*24)) <= 2;
+  });
+
+  document.getElementById('dash-prazos').textContent = pendentes.length;
+  document.getElementById('dash-prazos-sub').textContent =
+    criticos.length > 0 ? `${criticos.length} vencem hoje ou em breve` : 'Nenhum prazo urgente';
+  document.getElementById('dash-prazos-sub').style.color =
+    criticos.length > 0 ? 'var(--red)' : 'var(--text-muted)';
+
+  // Prazos críticos (lista)
+  const badge = document.getElementById('dash-prazos-badge');
+  const lista = document.getElementById('dash-prazos-lista');
+  if(criticos.length === 0){
+    badge.style.display = 'none';
+    lista.innerHTML = '<div style="padding:20px 16px;text-align:center;color:var(--text-muted);font-size:0.85rem">Nenhum prazo crítico no momento.</div>';
+  } else {
+    badge.style.display = '';
+    badge.textContent = `${criticos.length} urgente${criticos.length>1?'s':''}`;
+    lista.innerHTML = criticos.slice(0,5).map(p=>{
+      const diff = Math.floor((new Date(p.data_prazo+'T12:00:00')-hoje)/(1000*60*60*24));
+      const tag = diff < 0 ? 'VENCIDO' : diff === 0 ? 'HOJE' : `${diff} dia${diff>1?'s':''}`;
+      const cls = diff <= 0 ? 'p-urgent' : diff <= 2 ? 'p-warn' : 'p-ok';
+      return `<div class="prazo-row"><div class="prazo-info" style="flex:1"><strong>${p.id}</strong></div><span class="p-tag ${cls}">${tag}</span></div>`;
+    }).join('');
+  }
+
+  // Tarefas por prioridade
+  const contagem = {urgente:0,alta:0,media:0,baixa:0};
+  pendentes.forEach(p=>{ if(contagem[p.prioridade]!==undefined) contagem[p.prioridade]++; else contagem.media++; });
+  const total = pendentes.length || 1;
+  ['urgente','alta','media','baixa'].forEach(k=>{
+    document.getElementById(`dash-prio-${k}`).textContent = contagem[k];
+    document.getElementById(`dash-bar-${k}`).style.width = Math.round(contagem[k]/total*100)+'%';
+  });
 }
 
 async function carregarPrazos(){

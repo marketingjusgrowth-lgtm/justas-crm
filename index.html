@@ -1456,18 +1456,34 @@ initKanbanCardActions();
 
 // ─── KANBAN DnD ───
 let dragging=null;
-document.querySelectorAll('.k-card').forEach(c=>{
-  c.addEventListener('dragstart',()=>{dragging=c;setTimeout(()=>c.style.opacity='.4',0)});
-  c.addEventListener('dragend',()=>{dragging=null;c.style.opacity='1';document.querySelectorAll('.kanban-cards').forEach(col=>col.style.background='')});
-});
+const COL_TO_ESTAGIO = {
+  'k-frio':'Frio','k-atendimento':'Em Atendimento','k-visita':'Visita Agendada',
+  'k-proposta':'Proposta Enviada','k-fechado':'Contrato Assinado','k-perdido':'Perdido'
+};
+function initKanbanDnD(){
+  document.querySelectorAll('.k-card').forEach(c=>{
+    if(c._dndInit) return;
+    c._dndInit = true;
+    c.addEventListener('dragstart',()=>{dragging=c;setTimeout(()=>c.style.opacity='.4',0)});
+    c.addEventListener('dragend',()=>{dragging=null;c.style.opacity='1';document.querySelectorAll('.kanban-cards').forEach(col=>col.style.background='')});
+  });
+}
 document.querySelectorAll('.kanban-cards').forEach(col=>{
   col.addEventListener('dragover',e=>{e.preventDefault();col.style.background='#EFF6FF'});
   col.addEventListener('dragleave',()=>col.style.background='');
-  col.addEventListener('drop',e=>{
+  col.addEventListener('drop',async e=>{
     e.preventDefault();col.style.background='';
-    if(dragging&&dragging.parentElement!==col){col.appendChild(dragging);updateKanbanCounts();}
+    if(!dragging||dragging.parentElement===col) return;
+    col.appendChild(dragging);
+    updateKanbanCounts();
+    const id = dragging.dataset.id;
+    const novoEstagio = COL_TO_ESTAGIO[col.id];
+    if(id && novoEstagio){
+      await supa.from('leads').update({estagio:novoEstagio}).eq('id',id);
+    }
   });
 });
+initKanbanDnD();
 
 // ─── VIEW TOGGLE ───
 document.querySelectorAll('.view-toggle').forEach(wrap=>{
@@ -2692,6 +2708,7 @@ async function carregarLeads(){
 
   updateKanbanCounts();
   initKanbanCardActions();
+  initKanbanDnD();
 }
 
 // ─── PRAZOS: FILTRAR ───

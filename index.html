@@ -2330,7 +2330,7 @@ function getPrazoGrupo(dataPrazo){
   const diff = Math.floor((prazo-hoje)/(1000*60*60*24));
   if(diff<0)  return 'VENCIDOS';
   if(diff===0) return 'HOJE';
-  if(diff<=7)  return 'ESTA SEMANA';
+  if(diff<7)   return 'ESTA SEMANA';
   if(diff<=30) return 'ESTE MÊS';
   return 'FUTUROS';
 }
@@ -2378,7 +2378,7 @@ async function carregarPrazos(){
       const origemHtml=p.origem==='datajud'
         ?'<span style="background:#2563EB;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.68rem;font-weight:600">✓ DataJud</span>'
         :(p.origem==='processo'?'<span style="background:#7C3AED;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.68rem;font-weight:600">Processo</span>':'Manual');
-      html+=`<tr style="${rowBg};cursor:pointer" data-id="${p.id}" data-grupo="${grupoNome}" onclick="editarPrazo('${p.id}')">
+      html+=`<tr style="${rowBg};cursor:pointer" data-id="${p.id}" data-grupo="${grupoNome}" data-prioridade="${p.prioridade||''}" onclick="editarPrazo('${p.id}')">
         <td onclick="event.stopPropagation()"><input type="checkbox" style="accent-color:var(--blue)" onchange="atualizarBarraAcoes()" onclick="event.stopPropagation()"/></td>
         <td><div class="cell cell-name">${p.titulo||'—'}</div></td>
         <td><div class="cell" style="font-size:0.77rem;color:var(--blue)">${p.processo_numero||'—'}</div></td>
@@ -2941,7 +2941,7 @@ function filtrarPrazos(tipo, chip){
     const grupo = row.dataset.grupo||'';
     const badges = [...row.querySelectorAll('.badge')].map(b=>b.textContent);
     let show = true;
-    if(tipo==='urgente')      show = badges.some(b=>b.includes('Urgente'));
+    if(tipo==='urgente')      show = row.dataset.prioridade === 'urgente';
     else if(tipo==='semana')  show = ['HOJE','ESTA SEMANA','VENCIDOS'].includes(grupo);
     else if(tipo==='mes')     show = ['HOJE','ESTA SEMANA','ESTE MÊS','VENCIDOS'].includes(grupo);
     row.style.display = show ? '' : 'none';

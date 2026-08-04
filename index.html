@@ -782,9 +782,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
         </div>
         <div class="board-wrap">
           <table class="board-table">
-            <thead>
+            <thead style="position:sticky;top:0;z-index:10;background:#fff">
               <tr>
-                <th></th>
+                <th style="width:36px"></th>
                 <th>Tarefa / Prazo</th>
                 <th>Processo</th>
                 <th>Cliente</th>
@@ -1175,7 +1175,19 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
         <div class="fg"><label>Processo (nº)</label><input id="tar-processo" type="text" placeholder="Opcional"/></div>
         <div class="fg"><label>Cliente</label><input id="tar-cliente" type="text" placeholder="Nome do cliente"/></div>
         <div class="fg"><label>Tipo</label>
-          <select id="tar-tipo"><option>Prazo Processual</option><option>Atendimento</option><option>Reunião</option><option>Documento</option><option>Outro</option></select>
+          <select id="tar-tipo">
+            <option>Follow-up</option>
+            <option>Retorno ao Cliente</option>
+            <option>Prazo Processual</option>
+            <option>Audiência</option>
+            <option>Protocolo</option>
+            <option>Documento</option>
+            <option>Reunião</option>
+            <option>Atendimento</option>
+            <option>Perícia</option>
+            <option>Diligência</option>
+            <option>Outro</option>
+          </select>
         </div>
         <div class="fg"><label>Prazo *</label><input id="tar-data" type="date"/></div>
         <div class="fg"><label>Prioridade</label>
@@ -2087,22 +2099,17 @@ async function salvarAtendimento(){
     ({error:err} = await supa.from('atendimentos').insert(payload));
   }
   if(err){ alert('Erro ao salvar: '+err.message); return; }
-  if(!_atEditId){
-    const {error: errTar} = await supa.from('prazos').insert({
-      titulo:       'Retorno/Follow-up — ' + cliente,
-      cliente_nome: cliente,
-      tipo:         'Tarefa',
-      prioridade:   'media',
-      status:       'Pendente',
-      responsavel:  payload.responsavel||null,
-      origem:       'atendimento',
-    });
-    if(errTar){ showToast('⚠ Atendimento salvo, mas tarefa falhou: '+errTar.message,'#D97706'); }
-    else carregarPrazos();
-  }
   fecharModalAtendimento();
   carregarAtendimentos();
-  showToast('✓ Atendimento salvo! Tarefa criada em Prazos & Tarefas.');
+  showToast('✓ Atendimento salvo!');
+  if(!_atEditId){
+    setTimeout(()=>{
+      abrirModalTarefa(null, cliente);
+      document.getElementById('tar-resp').value = payload.responsavel||'Gustavo Rafael';
+      const setS=(id,v)=>{const el=document.getElementById(id);if(el&&v)[...el.options].forEach((o,i)=>{if(o.value===v||o.text===v)el.selectedIndex=i;});};
+      setS('tar-resp', payload.responsavel);
+    }, 300);
+  }
 }
 
 async function excluirAtendimento(){
@@ -2370,7 +2377,7 @@ async function carregarPrazos(){
       const origemHtml=p.origem==='datajud'
         ?'<span style="background:#2563EB;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.68rem;font-weight:600">✓ DataJud</span>'
         :(p.origem==='processo'?'<span style="background:#7C3AED;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.68rem;font-weight:600">Processo</span>':'Manual');
-      html+=`<tr style="${rowBg}" data-id="${p.id}" data-grupo="${grupoNome}">
+      html+=`<tr style="${rowBg};cursor:pointer" data-id="${p.id}" data-grupo="${grupoNome}" onclick="editarPrazo('${p.id}')">
         <td onclick="event.stopPropagation()"><input type="checkbox" style="accent-color:var(--blue)" onchange="atualizarBarraAcoes()" onclick="event.stopPropagation()"/></td>
         <td><div class="cell cell-name">${p.titulo||'—'}</div></td>
         <td><div class="cell" style="font-size:0.77rem;color:var(--blue)">${p.processo_numero||'—'}</div></td>
@@ -2382,8 +2389,8 @@ async function carregarPrazos(){
         <td><div class="cell"><div class="av av-sm" style="background:${avBg}">${av}</div></div></td>
         <td><div class="cell" style="gap:6px;display:flex;align-items:center">
           <span class="status-cell" style="background:${ss.bg};color:${ss.color};cursor:pointer"
-            onclick="alterarStatusPrazo(this,'${p.id}')" title="Clique para mudar status">${p.status||'Pendente'}</span>
-          ${p.status!=='Concluído'?`<button onclick="concluirTarefaRapido('${p.id}',this)" title="Marcar como concluída"
+            onclick="event.stopPropagation();alterarStatusPrazo(this,'${p.id}')" title="Clique para mudar status">${p.status||'Pendente'}</span>
+          ${p.status!=='Concluído'?`<button onclick="event.stopPropagation();concluirTarefaRapido('${p.id}',this)" title="Marcar como concluída"
             style="background:#D1FAE5;color:#065F46;border:none;border-radius:6px;padding:3px 8px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap">✓ Feito</button>`:''}
         </div></td>
       </tr>`;

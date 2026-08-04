@@ -2412,6 +2412,13 @@ async function carregarPrazos(){
       }
     });
   });
+
+  // Reapply active filter chip after table rebuild
+  const activeChip = document.querySelector('#page-prazos .filter-chip.active');
+  if(activeChip){
+    const m = (activeChip.getAttribute('onclick')||'').match(/filtrarPrazos\(['"](\w+)['"]/);
+    if(m && m[1] !== 'todos') filtrarPrazos(m[1], activeChip);
+  }
 }
 
 async function alterarStatusPrazo(el, id){
@@ -2930,7 +2937,7 @@ function filtrarPrazos(tipo, chip){
     if(row.querySelector('.group-header')) return;
     const grupo = row.dataset.grupo||'';
     const badges = [...row.querySelectorAll('.badge')].map(b=>b.textContent);
-    const isUrgent = badges.some(b=>b.includes('Urgente')||b.includes('Alta'));
+    const isUrgent = badges.some(b=>b.includes('Urgente'));
     if(tipo==='urgente') row.style.display = isUrgent ? '' : 'none';
     else if(tipo==='semana') row.style.display = (grupo==='HOJE'||grupo==='ESTA SEMANA'||grupo==='VENCIDOS') ? '' : 'none';
     else row.style.display = '';

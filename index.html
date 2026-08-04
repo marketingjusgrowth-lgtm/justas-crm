@@ -385,7 +385,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
       <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
       Controle de Clientes
     </div>
-    <div class="nav-item" onclick="nav('pipeline',this)">
+    <div class="nav-item" onclick="nav('pipeline',this);carregarLeads()">
       <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 8a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zm6-6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zm0 8a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
       Pipeline Comercial
       <span class="nav-badge">17</span>
@@ -780,127 +780,42 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
           <!-- Frio -->
           <div class="kanban-col">
             <div class="kanban-col-head"><div class="k-dot" style="background:#94A3B8"></div><span class="k-title">Frio</span><span class="k-count">3</span></div>
-            <div class="kanban-cards" id="k-frio">
-              <div class="k-card" draggable="true">
-                <div class="k-card-top"><div class="k-card-name">Fran Indicação Day</div><span style="font-size:.65rem;background:#FEE2E2;color:var(--red);padding:2px 7px;border-radius:100px;font-weight:700">Frio</span></div>
-                <div class="k-card-detail">📞 43 98851-7516</div>
-                <div class="k-card-detail">Direito de Família</div>
-                <div class="k-card-foot"><span class="k-card-date">27/06/2025</span><div class="av av-sm" style="background:#2563EB">GR</div></div>
-              </div>
-              <div class="k-card" draggable="true">
-                <div class="k-card-top"><div class="k-card-name">Jean — 27/06 Médio</div><span style="font-size:.65rem;background:#FEE2E2;color:var(--red);padding:2px 7px;border-radius:100px;font-weight:700">Frio</span></div>
-                <div class="k-card-detail">📞 43 98832-0274</div>
-                <div class="k-card-detail">Trabalhista</div>
-                <div class="k-card-foot"><span class="k-card-date">Médio porte</span><div class="av av-sm" style="background:#059669">AL</div></div>
-              </div>
-              <div class="k-card" draggable="true">
-                <div class="k-card-top"><div class="k-card-name">Elisangela — 04/09</div><span style="font-size:.65rem;background:#FEE2E2;color:var(--red);padding:2px 7px;border-radius:100px;font-weight:700">Frio</span></div>
-                <div class="k-card-detail">📞 43 98427-2804</div>
-                <div class="k-card-detail">3 QUARTOS — Imobiliário</div>
-                <div class="k-card-foot"><span class="k-card-date">04/09/2025</span><div class="av av-sm" style="background:#2563EB">GR</div></div>
-              </div>
-            </div>
+            <div class="kanban-cards" id="k-frio"></div>
             <button class="k-add-btn" onclick="openModal('lead')">+ Adicionar lead</button>
           </div>
 
           <!-- Em Atendimento -->
           <div class="kanban-col">
             <div class="kanban-col-head"><div class="k-dot" style="background:#2563EB"></div><span class="k-title">Em Atendimento</span><span class="k-count">4</span></div>
-            <div class="kanban-cards" id="k-atendimento">
-              <div class="k-card" draggable="true">
-                <div class="k-card-top"><div class="k-card-name">Francieli Ribeiro</div><span style="font-size:.65rem;background:#DBEAFE;color:#1D4ED8;padding:2px 7px;border-radius:100px;font-weight:700">Em Atendimento</span></div>
-                <div class="k-card-detail">📞 4398851-7516</div>
-                <div class="k-card-detail">AGUARDANDO AGENDAR VISITA</div>
-                <div class="k-card-foot"><span class="k-card-date">Ind. Dayane</span><div class="av av-sm" style="background:#059669">AL</div></div>
-              </div>
-              <div class="k-card" draggable="true">
-                <div class="k-card-top"><div class="k-card-name">Luana — 16/10</div><span style="font-size:.65rem;background:#DBEAFE;color:#1D4ED8;padding:2px 7px;border-radius:100px;font-weight:700">Em Atendimento</span></div>
-                <div class="k-card-detail">📞 43 99971-5043</div>
-                <div class="k-card-detail">Linz — Trabalhista</div>
-                <div class="k-card-foot"><span class="k-card-date">16/10/2025</span><div class="av av-sm" style="background:#059669">AL</div></div>
-              </div>
-              <div class="k-card" draggable="true">
-                <div class="k-card-top"><div class="k-card-name">Rian — 17/10</div><span style="font-size:.65rem;background:#DBEAFE;color:#1D4ED8;padding:2px 7px;border-radius:100px;font-weight:700">Em Atendimento</span></div>
-                <div class="k-card-detail">📞 43 99846-3913</div>
-                <div class="k-card-detail">Linz — Tributário</div>
-                <div class="k-card-foot"><span class="k-card-date">17/10/2025</span><div class="av av-sm" style="background:#2563EB">GR</div></div>
-              </div>
-            </div>
+            <div class="kanban-cards" id="k-atendimento"></div>
             <button class="k-add-btn" onclick="openModal('lead')">+ Adicionar lead</button>
           </div>
 
           <!-- Visita Agendada -->
           <div class="kanban-col">
             <div class="kanban-col-head"><div class="k-dot" style="background:#EA580C"></div><span class="k-title">Visita Agendada</span><span class="k-count">3</span></div>
-            <div class="kanban-cards" id="k-visita">
-              <div class="k-card" draggable="true">
-                <div class="k-card-top"><div class="k-card-name">Leonardo</div><span style="font-size:.65rem;background:#FFEDD5;color:var(--orange);padding:2px 7px;border-radius:100px;font-weight:700">Visita Agendada</span></div>
-                <div class="k-card-detail">Ind. Wagner e Barbara</div>
-                <div class="k-card-detail">📞 43 98825-2407</div>
-                <div class="k-card-detail" style="color:var(--yellow);font-weight:600">AGUARDANDO DOCUMENTAÇÃO</div>
-                <div class="k-card-foot"><span class="k-card-date">Empresarial</span><div class="av av-sm" style="background:#2563EB">GR</div></div>
-              </div>
-              <div class="k-card" draggable="true">
-                <div class="k-card-top"><div class="k-card-name">Bruna e João Victor</div><span style="font-size:.65rem;background:#FFEDD5;color:var(--orange);padding:2px 7px;border-radius:100px;font-weight:700">Visita Agendada</span></div>
-                <div class="k-card-detail">Indicação Barbara</div>
-                <div class="k-card-detail">📞 43 996166101</div>
-                <div class="k-card-foot"><span class="k-card-date">17/10/2025</span><div class="av av-sm" style="background:#059669">AL</div></div>
-              </div>
-            </div>
+            <div class="kanban-cards" id="k-visita"></div>
             <button class="k-add-btn" onclick="openModal('lead')">+ Adicionar lead</button>
           </div>
 
           <!-- Proposta Enviada -->
           <div class="kanban-col">
             <div class="kanban-col-head"><div class="k-dot" style="background:#7C3AED"></div><span class="k-title">Proposta Enviada</span><span class="k-count">3</span><span class="k-total">R$ 68k</span></div>
-            <div class="kanban-cards" id="k-proposta">
-              <div class="k-card" draggable="true">
-                <div class="k-card-top"><div class="k-card-name">Roberta Lima</div><span style="font-size:.65rem;background:var(--purple-bg);color:var(--purple);padding:2px 7px;border-radius:100px;font-weight:700">Proposta</span></div>
-                <div class="k-card-detail">Tributário</div>
-                <div class="k-card-value">R$ 24.000</div>
-                <div class="k-card-foot"><span class="k-card-date">20/07/2025</span><div class="av av-sm" style="background:#2563EB">GR</div></div>
-              </div>
-              <div class="k-card" draggable="true">
-                <div class="k-card-top"><div class="k-card-name">Paula Martins</div><span style="font-size:.65rem;background:var(--purple-bg);color:var(--purple);padding:2px 7px;border-radius:100px;font-weight:700">Proposta</span></div>
-                <div class="k-card-detail">Empresarial</div>
-                <div class="k-card-value">R$ 36.000</div>
-                <div class="k-card-foot"><span class="k-card-date">18/07/2025</span><div class="av av-sm" style="background:#059669">AL</div></div>
-              </div>
-            </div>
+            <div class="kanban-cards" id="k-proposta"></div>
             <button class="k-add-btn" onclick="openModal('lead')">+ Adicionar lead</button>
           </div>
 
           <!-- Contrato Assinado -->
           <div class="kanban-col">
             <div class="kanban-col-head"><div class="k-dot" style="background:#059669"></div><span class="k-title">Contrato Assinado</span><span class="k-count">2</span><span class="k-total">R$ 63k</span></div>
-            <div class="kanban-cards" id="k-fechado">
-              <div class="k-card" draggable="true" style="border-color:#D1FAE5">
-                <div class="k-card-top"><div class="k-card-name">Maria Fernanda</div><span style="font-size:.65rem;background:var(--green-bg);color:var(--green);padding:2px 7px;border-radius:100px;font-weight:700">✓ Fechado</span></div>
-                <div class="k-card-detail">Trabalhista</div>
-                <div class="k-card-value" style="color:var(--green)">R$ 18.000</div>
-                <div class="k-card-foot"><span class="k-card-date">22/07/2025</span><div class="av av-sm" style="background:#2563EB">GR</div></div>
-              </div>
-              <div class="k-card" draggable="true" style="border-color:#D1FAE5">
-                <div class="k-card-top"><div class="k-card-name">João Pedro Alves</div><span style="font-size:.65rem;background:var(--green-bg);color:var(--green);padding:2px 7px;border-radius:100px;font-weight:700">✓ Fechado</span></div>
-                <div class="k-card-detail">Tributário</div>
-                <div class="k-card-value" style="color:var(--green)">R$ 45.000</div>
-                <div class="k-card-foot"><span class="k-card-date">15/07/2025</span><div class="av av-sm" style="background:#2563EB">GR</div></div>
-              </div>
-            </div>
+            <div class="kanban-cards" id="k-fechado"></div>
             <button class="k-add-btn">+ Adicionar</button>
           </div>
 
           <!-- Perdido -->
           <div class="kanban-col">
             <div class="kanban-col-head"><div class="k-dot" style="background:#DC2626"></div><span class="k-title">Perdido</span><span class="k-count">1</span></div>
-            <div class="kanban-cards" id="k-perdido">
-              <div class="k-card" draggable="true" style="opacity:.55">
-                <div class="k-card-top"><div class="k-card-name">Daniel Correa</div><span style="font-size:.65rem;background:var(--red-bg);color:var(--red);padding:2px 7px;border-radius:100px;font-weight:700">Perdido</span></div>
-                <div class="k-card-detail">Optou por outro escritório</div>
-                <div class="k-card-detail">Família</div>
-                <div class="k-card-foot"><span class="k-card-date">10/07/2025</span><div class="av av-sm" style="background:#2563EB">GR</div></div>
-              </div>
-            </div>
+            <div class="kanban-cards" id="k-perdido"></div>
             <button class="k-add-btn">+ Adicionar</button>
           </div>
         </div>
@@ -1251,9 +1166,21 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
           <select id="m-honorario"><option value="">Selecionar...</option><option>Fixo</option><option>Êxito</option><option>Mensalidade</option><option>Misto</option></select>
         </div>
         <div class="fg form-full"><label>Resumo do caso</label><textarea id="m-resumo" placeholder="Descreva brevemente a situação..."></textarea></div>
+        <div class="fg" id="m-estagio-wrap" style="display:none"><label>Estágio no Pipeline</label>
+          <select id="m-estagio">
+            <option value="Frio">Frio</option>
+            <option value="Em Atendimento">Em Atendimento</option>
+            <option value="Visita Agendada">Visita Agendada</option>
+            <option value="Proposta Enviada">Proposta Enviada</option>
+            <option value="Contrato Assinado">Contrato Assinado</option>
+            <option value="Perdido">Perdido</option>
+          </select>
+        </div>
       </div>
     </div>
+    <input type="hidden" id="m-edit-id"/>
     <div class="modal-foot">
+      <button id="m-btn-excluir" style="display:none;margin-right:auto" class="btn" onclick="excluirLead()" style="background:var(--red-bg);color:var(--red);border:1px solid var(--red)">🗑 Excluir</button>
       <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
       <button class="btn btn-blue" onclick="salvarLead()">Salvar</button>
     </div>
@@ -1448,7 +1375,10 @@ function enterApp(user){
   document.getElementById('user-av').style.background = cor;
   document.getElementById('user-name').textContent = nome;
   document.getElementById('user-role').textContent = cargo;
-  setTimeout(()=>carregarProcessos().catch(e=>console.error('carregarProcessos erro:',e)), 300);
+  setTimeout(()=>{
+    carregarProcessos().catch(e=>console.error('carregarProcessos erro:',e));
+    carregarLeads().catch(e=>console.error('carregarLeads erro:',e));
+  }, 300);
 }
 
 function loginAs(name,initials,color,role){
@@ -1492,6 +1422,9 @@ function openModal(type){
   document.getElementById('modal-title').textContent=t[_modalType]||'Novo Registro';
   ['m-nome','m-cpf','m-tel','m-email','m-demanda','m-valor','m-resumo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['m-area','m-origem','m-resp','m-honorario'].forEach(id=>{const el=document.getElementById(id);if(el)el.selectedIndex=0;});
+  document.getElementById('m-edit-id').value='';
+  document.getElementById('m-btn-excluir').style.display='none';
+  document.getElementById('m-estagio-wrap').style.display='none';
   document.getElementById('modal').classList.add('open');
 }
 function closeModal(){document.getElementById('modal').classList.remove('open')}
@@ -2647,6 +2580,7 @@ async function excluirProcessoCRM(){
 async function salvarLead(){
   const nome = document.getElementById('m-nome').value.trim();
   if(!nome){ document.getElementById('m-nome').style.borderColor='var(--red)'; return; }
+  const editId = document.getElementById('m-edit-id').value;
   const payload = {
     nome,
     cpf_cnpj:   document.getElementById('m-cpf').value.trim()||null,
@@ -2659,14 +2593,105 @@ async function salvarLead(){
     valor_est:  document.getElementById('m-valor').value.trim()||null,
     honorario:  document.getElementById('m-honorario').value||null,
     resumo:     document.getElementById('m-resumo').value.trim()||null,
-    estagio:    'Frio'
   };
-  const {error} = await supa.from('leads').insert(payload);
-  if(error && !error.message.includes('does not exist')){
-    alert('Erro ao salvar: '+error.message); return;
+  let error;
+  if(editId){
+    payload.estagio = document.getElementById('m-estagio').value;
+    ({error} = await supa.from('leads').update(payload).eq('id', editId));
+  } else {
+    payload.estagio = 'Frio';
+    ({error} = await supa.from('leads').insert(payload));
   }
+  if(error){ alert('Erro ao salvar: '+error.message); return; }
   closeModal();
-  showToast('✓ Lead salvo!');
+  carregarLeads();
+  showToast(editId ? '✓ Lead atualizado!' : '✓ Lead salvo!');
+}
+
+async function excluirLead(){
+  const id = document.getElementById('m-edit-id').value;
+  if(!id || !confirm('Excluir este lead?')) return;
+  const {error} = await supa.from('leads').delete().eq('id', id);
+  if(error){ alert('Erro: '+error.message); return; }
+  closeModal();
+  carregarLeads();
+  showToast('✓ Lead excluído!','#EF4444');
+}
+
+async function abrirModalLead(id){
+  const {data, error} = await supa.from('leads').select('*').eq('id', id).single();
+  if(error || !data){ showToast('Erro ao carregar lead','#EF4444'); return; }
+  document.getElementById('modal-title').textContent = 'Editar Lead';
+  document.getElementById('m-edit-id').value = id;
+  document.getElementById('m-nome').value    = data.nome||'';
+  document.getElementById('m-cpf').value     = data.cpf_cnpj||'';
+  document.getElementById('m-tel').value     = data.whatsapp||'';
+  document.getElementById('m-email').value   = data.email||'';
+  document.getElementById('m-demanda').value = data.demanda||'';
+  document.getElementById('m-valor').value   = data.valor_est||'';
+  document.getElementById('m-resumo').value  = data.resumo||'';
+  const setS = (id,v)=>{ const el=document.getElementById(id); if(el&&v) [...el.options].forEach((o,i)=>{if(o.value===v)el.selectedIndex=i;}); };
+  setS('m-area', data.area);
+  setS('m-origem', data.origem);
+  setS('m-resp', data.responsavel);
+  setS('m-honorario', data.honorario);
+  setS('m-estagio', data.estagio||'Frio');
+  document.getElementById('m-estagio-wrap').style.display='';
+  document.getElementById('m-btn-excluir').style.display='';
+  document.getElementById('modal').classList.add('open');
+}
+
+// ─── LEADS: CARREGAR DO SUPABASE ───
+const ESTAGIO_MAP = {
+  'Frio':              {col:'k-frio',    bg:'#FEE2E2', color:'var(--red)',    label:'Frio'},
+  'Em Atendimento':    {col:'k-atendimento', bg:'#DBEAFE', color:'#1D4ED8',  label:'Em Atendimento'},
+  'Visita Agendada':   {col:'k-visita',  bg:'#FFEDD5', color:'var(--orange)',label:'Visita Agendada'},
+  'Proposta Enviada':  {col:'k-proposta',bg:'var(--purple-bg)', color:'var(--purple)',label:'Proposta'},
+  'Contrato Assinado': {col:'k-fechado', bg:'var(--green-bg)', color:'var(--green)', label:'✓ Fechado'},
+  'Perdido':           {col:'k-perdido', bg:'var(--red-bg)', color:'var(--red)', label:'Perdido'},
+};
+
+async function carregarLeads(){
+  const {data, error} = await supa.from('leads').select('*').order('created_at',{ascending:false});
+  if(error){ console.warn('Leads:', error.message); return; }
+
+  Object.values(ESTAGIO_MAP).forEach(({col})=>{
+    const el = document.getElementById(col);
+    if(el) el.innerHTML='';
+  });
+
+  (data||[]).forEach(lead=>{
+    const est = ESTAGIO_MAP[lead.estagio] || ESTAGIO_MAP['Frio'];
+    const col = document.getElementById(est.col);
+    if(!col) return;
+    const av = (lead.responsavel||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    const avBg = ['#2563EB','#059669','#7C3AED'][(av.charCodeAt(0)||0)%3];
+    const valorHtml = lead.valor_est ? `<div class="k-card-value">${lead.valor_est.startsWith('R')?'':'R$ '}${lead.valor_est}</div>` : '';
+    const card = document.createElement('div');
+    card.className = 'k-card';
+    card.draggable = true;
+    card.dataset.id = lead.id;
+    if(lead.estagio==='Perdido') card.style.opacity='.55';
+    if(lead.estagio==='Contrato Assinado') card.style.borderColor='#D1FAE5';
+    card.innerHTML = `
+      <div class="k-card-top">
+        <div class="k-card-name">${lead.nome}</div>
+        <span style="font-size:.65rem;background:${est.bg};color:${est.color};padding:2px 7px;border-radius:100px;font-weight:700">${est.label}</span>
+      </div>
+      ${lead.whatsapp?`<div class="k-card-detail">📞 ${lead.whatsapp}</div>`:''}
+      ${lead.demanda?`<div class="k-card-detail">${lead.demanda}</div>`:''}
+      ${lead.area?`<div class="k-card-detail">${lead.area}</div>`:''}
+      ${valorHtml}
+      <div class="k-card-foot">
+        <span class="k-card-date">${lead.origem||''}</span>
+        <div class="av av-sm" style="background:${avBg}">${av}</div>
+      </div>`;
+    card.addEventListener('click', ()=> abrirModalLead(lead.id));
+    col.appendChild(card);
+  });
+
+  updateKanbanCounts();
+  initKanbanCardActions();
 }
 
 // ─── PRAZOS: FILTRAR ───

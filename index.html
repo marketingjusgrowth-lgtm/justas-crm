@@ -1782,6 +1782,17 @@ const MOVIMENTO_PRAZOS = {
   848:'Audiência',
 };
 
+// Movimentos que só geram prazo para o polo passivo (réu/executado)
+const MOVIMENTO_APENAS_PASSIVO = new Set([12584]); // Citação
+
+function _filtrarMovimentosPorPolo(movimentos, polo) {
+  const isPassivo = ['Réu','Requerido','Executado'].includes(polo);
+  return movimentos.filter(m => {
+    if(MOVIMENTO_APENAS_PASSIVO.has(Number(m.codigo)) && !isPassivo) return false;
+    return true;
+  });
+}
+
 const TJ_NOME = {
   tjac:'TJAC',tjal:'TJAL',tjap:'TJAP',tjam:'TJAM',tjba:'TJBA',
   tjce:'TJCE',tjdft:'TJDFT',tjes:'TJES',tjgo:'TJGO',tjma:'TJMA',
@@ -1933,9 +1944,10 @@ async function confirmarSalvarCRM() {
   btn.textContent='Salvar no CRM'; btn.disabled=false;
   if(error){ alert('Erro ao salvar: '+error.message); return; }
 
-  // Criar prazos automaticamente dos movimentos DataJud detectados
-  if(_djMovimentos.length){
-    const prazosInsert = _djMovimentos.map(m=>{
+  // Criar prazos automaticamente dos movimentos DataJud detectados, filtrados pelo polo
+  const movimentosFiltrados = _filtrarMovimentosPorPolo(_djMovimentos, polo);
+  if(movimentosFiltrados.length){
+    const prazosInsert = movimentosFiltrados.map(m=>{
       const dataHora = m.dataHora ? new Date(m.dataHora) : null;
       // Calcula prazo somando os dias indicados pelo tipo de movimento
       const diasMap = {12778:15,12490:15,11010:5,12213:0,12584:15,11007:0,12592:0,22:0,131:0,848:0};
@@ -2905,8 +2917,10 @@ async function resincronizarProcesso(){
     if(!hits || !hits.length) throw new Error('Processo não encontrado no DataJud.');
 
     const src = hits[0]._source;
-    const movimentos = (src.movimentos || []).filter(m =>
-      Object.keys(MOVIMENTO_PRAZOS).includes(String(m.codigo))
+    const polo = document.getElementById('pm-polo')?.value || 'Autor';
+    const movimentos = _filtrarMovimentosPorPolo(
+      (src.movimentos || []).filter(m => Object.keys(MOVIMENTO_PRAZOS).includes(String(m.codigo))),
+      polo
     );
 
     if(!movimentos.length){

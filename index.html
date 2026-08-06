@@ -1059,13 +1059,19 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
         <div class="form-section form-full">Dados do Processo</div>
         <div class="fg"><label>Nº do Processo</label><input id="pm-numero" type="text" placeholder="0000000-00.0000.0.00.0000"/></div>
         <div class="fg"><label>Cliente *</label><input id="pm-cliente" type="text" placeholder="Nome do cliente"/></div>
+        <div class="fg"><label>Polo — qual parte você representa *</label>
+          <select id="pm-polo" style="background:var(--blue-light);border-color:var(--blue);font-weight:600">
+            <option value="Autor">Autor / Requerente</option>
+            <option value="Réu">Réu / Requerido</option>
+            <option value="Terceiro">Terceiro Interessado</option>
+            <option value="Exequente">Exequente</option>
+            <option value="Executado">Executado</option>
+          </select>
+        </div>
         <div class="fg"><label>Área do Direito *</label>
           <select id="pm-area"><option value="">Selecionar...</option><option>Trabalhista</option><option>Tributário</option><option>Família</option><option>Empresarial</option><option>Cível</option><option>Previdenciário</option><option>Criminal</option><option>Imobiliário</option></select>
         </div>
         <div class="fg"><label>Tribunal</label><input id="pm-tribunal" type="text" placeholder="Ex: TJPR, TRT-9, STJ"/></div>
-        <div class="fg"><label>Polo (qual parte você representa)</label>
-          <select id="pm-polo"><option value="Autor">Autor / Requerente</option><option value="Réu">Réu / Requerido</option><option value="Terceiro">Terceiro Interessado</option><option value="Exequente">Exequente</option><option value="Executado">Executado</option></select>
-        </div>
         <div class="fg"><label>Fase</label>
           <select id="pm-fase"><option>Conhecimento</option><option>Recursal</option><option>Execução</option><option>Acordo</option><option>Arquivado</option></select>
         </div>
@@ -1087,6 +1093,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
     </div>
     <div class="modal-foot">
       <button id="pm-btn-excluir" style="display:none;margin-right:auto" class="btn" onclick="excluirProcessoCRM()">🗑 Excluir</button>
+      <button id="pm-btn-sync" style="display:none" class="btn btn-ghost" onclick="resincronizarProcesso()">↺ Atualizar DataJud</button>
       <button class="btn btn-ghost" onclick="fecharModalProcesso()">Cancelar</button>
       <button class="btn btn-blue" onclick="salvarProcesso()">Salvar</button>
     </div>
@@ -2794,9 +2801,12 @@ async function abrirModalProcesso(id){
   _procEditId = id || null;
   document.getElementById('proc-modal-titulo').textContent = id ? 'Editar Processo' : 'Novo Processo';
   document.getElementById('pm-btn-excluir').style.display = id ? 'inline-flex' : 'none';
+  document.getElementById('pm-btn-sync').style.display = 'none'; // mostra depois se tiver numero
   if(id){
     const {data} = await supa.from('processos').select('*').eq('id',id).single();
     if(data){
+      // Mostrar botão re-sync só para processos com número CNJ
+      if(data.numero) document.getElementById('pm-btn-sync').style.display = 'inline-flex';
       document.getElementById('pm-numero').value   = data.numero||'';
       document.getElementById('pm-cliente').value  = data.cliente_nome||'';
       document.getElementById('pm-tribunal').value = data.tribunal||'';
@@ -2876,6 +2886,86 @@ async function excluirProcessoCRM(){
   fecharModalProcesso();
   carregarProcessos();
   carregarDashboard();
+}
+
+async function resincronizarProcesso(){
+  const numero = document.getElementById('pm-numero').value.trim();
+  if(!numero){ alert('Este processo não tem número CNJ para consultar.'); return; }
+
+  const btn = document.getElementById('pm-btn-sync');
+  const origText = btn.textContent;
+  btn.textContent = '⏳ Consultando...';
+  btn.disabled = true;
+
+  try {
+    const res = await supa.functions.invoke('datajud-proxy', {body:{numero}});
+    if(res.error) throw new Error(res.error.message || JSON.stringify(res.error));
+
+    const hits = res.data?.hits?.hits;
+    if(!hits || !hits.length) throw new Error('Processo não encontrado no DataJud.');
+
+    const src = hits[0]._source;
+    const movimentos = (src.movimentos || []).filter(m =>
+      Object.keys(MOVIMENTO_PRAZOS).includes(String(m.codigo))
+    );
+
+    if(!movimentos.length){
+      showToast('Nenhum novo prazo detectado nos últimos movimentos.');
+      btn.textContent = origText; btn.disabled = false;
+      return;
+    }
+
+    // Buscar prazos já existentes para este processo
+    const {data: existentes} = await supa.from('prazos')
+      .select('titulo,data_prazo')
+      .eq('processo_numero', numero)
+      .eq('origem', 'datajud');
+
+    const existSet = new Set((existentes||[]).map(p => p.titulo + '|' + (p.data_prazo||'')));
+
+    const diasMap = {12778:15,12490:15,11010:5,12213:0,12584:15,11007:0,12592:0,22:0,131:0,848:0};
+    const cliente = document.getElementById('pm-cliente').value.trim();
+
+    const novos = movimentos.map(m => {
+      const dataHora = m.dataHora ? new Date(m.dataHora) : null;
+      const dias = diasMap[m.codigo] ?? 15;
+      let dataPrazo = null;
+      if(dataHora && !isNaN(dataHora)){
+        const d = new Date(dataHora); d.setDate(d.getDate()+dias);
+        dataPrazo = d.toISOString().split('T')[0];
+      }
+      const titulo = MOVIMENTO_PRAZOS[m.codigo] || m.nome || 'Prazo DataJud';
+      return { titulo, dataPrazo, dias, cliente };
+    }).filter(p => !existSet.has(p.titulo + '|' + (p.dataPrazo||'')));
+
+    if(!novos.length){
+      showToast('Prazos já estão atualizados — nenhum novo encontrado.');
+      btn.textContent = origText; btn.disabled = false;
+      return;
+    }
+
+    const inserts = novos.map(p => ({
+      titulo: p.titulo,
+      processo_numero: numero,
+      cliente_nome: p.cliente || null,
+      tipo: 'Prazo Processual',
+      prioridade: p.dias <= 5 ? 'urgente' : p.dias <= 10 ? 'alta' : 'media',
+      status: 'Pendente',
+      data_prazo: p.dataPrazo,
+      origem: 'datajud',
+    }));
+
+    const {error} = await supa.from('prazos').insert(inserts);
+    if(error) throw new Error(error.message);
+
+    showToast(`✓ ${novos.length} novo(s) prazo(s) importado(s) do DataJud!`, '#059669');
+    carregarDashboard();
+  } catch(e){
+    alert('Erro ao sincronizar: ' + e.message);
+  } finally {
+    btn.textContent = origText;
+    btn.disabled = false;
+  }
 }
 
 // ─── LEAD MODAL SAVE ───

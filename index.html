@@ -775,6 +775,28 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
 
       <!-- ── FINANCEIRO ── -->
       <div class="page" id="page-financeiro">
+        <!-- Seletor de mês -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <button onclick="finNavMes(-1)" style="background:var(--sidebar);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:1rem;cursor:pointer;color:var(--text);font-weight:600;line-height:1">‹</button>
+            <div id="fin-mes-label" style="min-width:160px;text-align:center;font-size:0.95rem;font-weight:700;color:var(--text);padding:6px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px">—</div>
+            <button onclick="finNavMes(1)" id="fin-btn-proximo" style="background:var(--sidebar);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:1rem;cursor:pointer;color:var(--text);font-weight:600;line-height:1">›</button>
+            <button onclick="finNavHoje()" id="fin-btn-hoje" style="display:none;background:var(--blue);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:0.8rem;cursor:pointer;font-weight:600">Mês atual</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <select id="fin-filtro-tipo" onchange="carregarFinanceiro()" style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:0.82rem;background:var(--card);color:var(--text);font-family:inherit;cursor:pointer">
+              <option value="">Todos</option>
+              <option value="receita">Receitas</option>
+              <option value="despesa">Despesas</option>
+            </select>
+            <select id="fin-filtro-status" onchange="carregarFinanceiro()" style="border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:0.82rem;background:var(--card);color:var(--text);font-family:inherit;cursor:pointer">
+              <option value="">Todos status</option>
+              <option value="Pago">Pago</option>
+              <option value="Pendente">Pendente</option>
+              <option value="Cancelado">Cancelado</option>
+            </select>
+          </div>
+        </div>
         <div class="fin-grid">
           <div class="fin-card">
             <div class="fin-label">Receita do Mês</div>
@@ -1507,28 +1529,62 @@ const LANC_CATS = {
 };
 
 let _lancamentos = [];
+let _finAno = new Date().getFullYear();
+let _finMes = new Date().getMonth() + 1; // 1-12
+
+function finNavMes(delta){
+  _finMes += delta;
+  if(_finMes > 12){ _finMes = 1; _finAno++; }
+  if(_finMes < 1){ _finMes = 12; _finAno--; }
+  carregarFinanceiro();
+}
+
+function finNavHoje(){
+  const h = new Date();
+  _finAno = h.getFullYear();
+  _finMes = h.getMonth() + 1;
+  carregarFinanceiro();
+}
 
 async function carregarFinanceiro(){
+  const ini = `${_finAno}-${String(_finMes).padStart(2,'0')}-01`;
+  const fim = `${_finAno}-${String(_finMes).padStart(2,'0')}-31`;
+
+  // Atualiza label e botão "mês atual"
+  const dataRef = new Date(_finAno, _finMes-1, 1);
+  const mesNome = dataRef.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+  const labelEl = document.getElementById('fin-mes-label');
+  if(labelEl) labelEl.textContent = mesNome.charAt(0).toUpperCase() + mesNome.slice(1);
   const hoje = new Date();
-  const anoMes = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
-  const ini = anoMes+'-01';
-  const fim = anoMes+'-31';
+  const ehHoje = _finAno === hoje.getFullYear() && _finMes === hoje.getMonth()+1;
+  const btnHoje = document.getElementById('fin-btn-hoje');
+  const btnProx = document.getElementById('fin-btn-proximo');
+  if(btnHoje) btnHoje.style.display = ehHoje ? 'none' : 'inline-block';
+  if(btnProx) btnProx.disabled = ehHoje;
 
   const {data,error} = await supa.from('lancamentos').select('*').gte('data',ini).lte('data',fim).order('data',{ascending:false});
   if(error){console.error(error);return;}
   _lancamentos = data||[];
 
-  const receitas = _lancamentos.filter(l=>l.tipo==='receita');
-  const despesas = _lancamentos.filter(l=>l.tipo==='despesa');
-  const pendentes = _lancamentos.filter(l=>l.status==='Pendente');
+  // Aplicar filtros de exibição
+  const filtroTipo = document.getElementById('fin-filtro-tipo')?.value || '';
+  const filtroStatus = document.getElementById('fin-filtro-status')?.value || '';
+
+  const todos = _lancamentos;
+  const aplicaFiltro = (arr) => arr.filter(l =>
+    (!filtroTipo || l.tipo === filtroTipo) &&
+    (!filtroStatus || l.status === filtroStatus)
+  );
+
+  const receitas = todos.filter(l=>l.tipo==='receita');
+  const despesas = todos.filter(l=>l.tipo==='despesa');
+  const pendentes = todos.filter(l=>l.status==='Pendente');
 
   const totRec = receitas.filter(l=>l.status!=='Cancelado').reduce((s,l)=>s+Number(l.valor),0);
   const totDesp = despesas.filter(l=>l.status!=='Cancelado').reduce((s,l)=>s+Number(l.valor),0);
-  const totReceber = _lancamentos.filter(l=>l.tipo==='receita'&&l.status==='Pendente').reduce((s,l)=>s+Number(l.valor),0);
+  const totReceber = todos.filter(l=>l.tipo==='receita'&&l.status==='Pendente').reduce((s,l)=>s+Number(l.valor),0);
   const lucro = totRec - totDesp;
   const margem = totRec > 0 ? ((lucro/totRec)*100).toFixed(1) : 0;
-
-  const mesNome = hoje.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
 
   document.getElementById('fin-receita').textContent = fmtShort(totRec);
   document.getElementById('fin-receita-sub').textContent = `${receitas.length} lançamento(s) — ${mesNome}`;
@@ -1538,7 +1594,7 @@ async function carregarFinanceiro(){
   document.getElementById('fin-lucro').style.color = lucro >= 0 ? 'var(--green)' : 'var(--red)';
   document.getElementById('fin-lucro-sub').textContent = `Margem ${margem}%`;
   document.getElementById('fin-receber').textContent = fmtShort(totReceber);
-  document.getElementById('fin-receber-sub').textContent = totReceber > 0 ? `${_lancamentos.filter(l=>l.tipo==='receita'&&l.status==='Pendente').length} em aberto` : 'Nenhuma pendência';
+  document.getElementById('fin-receber-sub').textContent = totReceber > 0 ? `${todos.filter(l=>l.tipo==='receita'&&l.status==='Pendente').length} em aberto` : 'Nenhuma pendência';
 
   document.getElementById('fin-rec-titulo').textContent = `Receitas — ${mesNome}`;
   document.getElementById('fin-desp-titulo').textContent = `Despesas — ${mesNome}`;
@@ -1563,13 +1619,16 @@ async function carregarFinanceiro(){
     </div>`;
   };
 
+  const recFiltradas = aplicaFiltro(receitas);
+  const despFiltradas = aplicaFiltro(despesas);
+
   const listaRec = document.getElementById('fin-lista-receitas');
-  listaRec.innerHTML = receitas.length ? receitas.map(_row).join('') : '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:0.85rem">Nenhuma receita lançada este mês.</div>';
+  listaRec.innerHTML = recFiltradas.length ? recFiltradas.map(_row).join('') : '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:0.85rem">Nenhuma receita encontrada.</div>';
 
   const listaDesp = document.getElementById('fin-lista-despesas');
-  listaDesp.innerHTML = despesas.length ? despesas.map(_row).join('') : '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:0.85rem">Nenhuma despesa lançada este mês.</div>';
+  listaDesp.innerHTML = despFiltradas.length ? despFiltradas.map(_row).join('') : '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:0.85rem">Nenhuma despesa encontrada.</div>';
 
-  // Resumo
+  // Resumo (sempre sobre todos, sem filtro)
   const dreBody = document.getElementById('dre-body');
   const dreRow = (label,val,style)=>{
     const isTotal = style==='total';

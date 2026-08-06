@@ -1090,6 +1090,25 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
         </div>
         <div class="fg form-full"><label>Observações</label><textarea id="pm-obs" rows="3" placeholder="Notas sobre o processo..."></textarea></div>
       </div>
+
+      <!-- Histórico — visível apenas ao editar -->
+      <div id="pm-historico-section" style="display:none;border-top:1px solid var(--border);padding:20px 0 0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <h3 style="font-size:0.88rem;font-weight:700;color:var(--text)">Histórico do Processo</h3>
+          <span id="pm-hist-count" style="font-size:0.75rem;color:var(--text-muted)"></span>
+        </div>
+        <!-- Adicionar nota manual -->
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <input id="pm-hist-input" type="text" placeholder="Adicionar nota (ex: Protocolo enviado, cliente contatado...)"
+            style="flex:1;border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.83rem;font-family:inherit;color:var(--text);background:var(--card);outline:none"
+            onkeydown="if(event.key==='Enter')adicionarNotaHistorico()"/>
+          <button onclick="adicionarNotaHistorico()" style="background:var(--blue);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap">+ Nota</button>
+        </div>
+        <!-- Timeline -->
+        <div id="pm-hist-lista" style="display:flex;flex-direction:column;gap:0;max-height:260px;overflow-y:auto">
+          <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.83rem">Carregando histórico...</div>
+        </div>
+      </div>
     </div>
     <div class="modal-foot">
       <button id="pm-btn-excluir" style="display:none;margin-right:auto" class="btn" onclick="excluirProcessoCRM()">🗑 Excluir</button>
@@ -2813,11 +2832,11 @@ async function abrirModalProcesso(id){
   _procEditId = id || null;
   document.getElementById('proc-modal-titulo').textContent = id ? 'Editar Processo' : 'Novo Processo';
   document.getElementById('pm-btn-excluir').style.display = id ? 'inline-flex' : 'none';
-  document.getElementById('pm-btn-sync').style.display = 'none'; // mostra depois se tiver numero
+  document.getElementById('pm-btn-sync').style.display = 'none';
+  document.getElementById('pm-historico-section').style.display = id ? 'block' : 'none';
   if(id){
     const {data} = await supa.from('processos').select('*').eq('id',id).single();
     if(data){
-      // Mostrar botão re-sync só para processos com número CNJ
       if(data.numero) document.getElementById('pm-btn-sync').style.display = 'inline-flex';
       document.getElementById('pm-numero').value   = data.numero||'';
       document.getElementById('pm-cliente').value  = data.cliente_nome||'';
@@ -2831,6 +2850,7 @@ async function abrirModalProcesso(id){
       setSelect('pm-status', data.status||'Em andamento');
       setSelect('pm-polo', data.polo||'Autor');
       _renderRespCheckboxes(data.responsaveis||[]);
+      carregarHistoricoProcesso(id);
     }
   } else {
     ['pm-numero','pm-cliente','pm-tribunal','pm-acao','pm-obs'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
@@ -2872,10 +2892,18 @@ async function salvarProcesso(){
     ({error:err} = await supa.from('processos').insert(payload));
   }
   if(err){ alert('Erro ao salvar: '+err.message); return; }
+
+  const numero = document.getElementById('pm-numero').value.trim()||null;
+
   if(!_procEditId){
+    // Buscar o id recém criado para logar o histórico
+    const {data: novo} = await supa.from('processos').select('id').eq('cliente_nome', cliente).order('created_at',{ascending:false}).limit(1).single();
+    if(novo){
+      await adicionarHistorico(novo.id, numero, 'Processo cadastrado no CRM.', 'sistema');
+    }
     const {error: errPrazo} = await supa.from('prazos').insert({
       titulo: 'Acompanhamento inicial — '+cliente,
-      processo_numero: document.getElementById('pm-numero').value.trim()||null,
+      processo_numero: numero,
       cliente_nome: cliente,
       tipo: 'Prazo Processual',
       prioridade: 'media',
@@ -2884,11 +2912,14 @@ async function salvarProcesso(){
     });
     if(errPrazo) showToast('⚠ Processo salvo, mas prazo não criado: '+errPrazo.message,'#D97706');
     else carregarPrazos();
+  } else {
+    await adicionarHistorico(_procEditId, numero, `Dados do processo atualizados (status: ${payload.status}, fase: ${payload.fase}).`, 'sistema');
   }
+
   fecharModalProcesso();
   carregarProcessos();
   carregarDashboard();
-  showToast('✓ Processo salvo! Prazo criado automaticamente em Prazos & Tarefas.');
+  showToast('✓ Processo salvo!');
 }
 
 async function excluirProcessoCRM(){
@@ -2972,6 +3003,12 @@ async function resincronizarProcesso(){
     const {error} = await supa.from('prazos').insert(inserts);
     if(error) throw new Error(error.message);
 
+    await adicionarHistorico(
+      _procEditId, numero,
+      `DataJud: ${novos.length} novo(s) prazo(s) importado(s) — ${novos.map(p=>p.titulo).join(', ')}.`,
+      'datajud'
+    );
+    await carregarHistoricoProcesso(_procEditId);
     showToast(`✓ ${novos.length} novo(s) prazo(s) importado(s) do DataJud!`, '#059669');
     carregarDashboard();
   } catch(e){
@@ -2980,6 +3017,74 @@ async function resincronizarProcesso(){
     btn.textContent = origText;
     btn.disabled = false;
   }
+}
+
+// ─── HISTÓRICO DE PROCESSO ───
+async function carregarHistoricoProcesso(processoId){
+  const lista = document.getElementById('pm-hist-lista');
+  const countEl = document.getElementById('pm-hist-count');
+  if(!lista) return;
+  lista.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:0.83rem">Carregando...</div>';
+
+  const {data, error} = await supa.from('historico_processos')
+    .select('*').eq('processo_id', processoId)
+    .order('created_at', {ascending: false});
+
+  if(error){ lista.innerHTML = `<div style="color:var(--red);font-size:0.8rem;padding:12px">Erro: ${error.message}</div>`; return; }
+
+  if(countEl) countEl.textContent = `${(data||[]).length} registro(s)`;
+
+  if(!data || !data.length){
+    lista.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.83rem">Nenhuma atividade registrada ainda.</div>';
+    return;
+  }
+
+  const icone = {manual:'✏️', sistema:'⚙️', datajud:'⚖️'};
+  const cor   = {manual:'var(--text-muted)', sistema:'var(--blue)', datajud:'#7C3AED'};
+
+  lista.innerHTML = data.map((h,i) => {
+    const dt = new Date(h.created_at);
+    const dataFmt = dt.toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'2-digit'});
+    const horaFmt = dt.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+    const isLast  = i === data.length - 1;
+    return `<div style="display:flex;gap:12px;padding:10px 0;${!isLast?'border-bottom:1px solid var(--border)':''}">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">
+        <div style="width:28px;height:28px;border-radius:50%;background:var(--sidebar);display:flex;align-items:center;justify-content:center;font-size:0.8rem">${icone[h.tipo]||'📝'}</div>
+        ${!isLast?'<div style="width:1px;flex:1;background:var(--border)"></div>':''}
+      </div>
+      <div style="flex:1;padding-top:4px">
+        <div style="font-size:0.83rem;color:var(--text);line-height:1.4">${h.descricao}</div>
+        <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">
+          ${h.responsavel?`<span style="font-size:0.72rem;color:${cor[h.tipo]||'var(--text-muted)'};font-weight:600">${h.responsavel}</span>`:''}
+          <span style="font-size:0.72rem;color:var(--text-muted)">${dataFmt} às ${horaFmt}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function adicionarHistorico(processoId, processoNumero, descricao, tipo='sistema'){
+  if(!processoId || !descricao) return;
+  await supa.from('historico_processos').insert({
+    processo_id: processoId,
+    processo_numero: processoNumero || null,
+    descricao,
+    responsavel: _loginNome || null,
+    tipo,
+  });
+}
+
+async function adicionarNotaHistorico(){
+  const input = document.getElementById('pm-hist-input');
+  const texto = input?.value.trim();
+  if(!texto || !_procEditId) return;
+  input.value = '';
+  input.disabled = true;
+
+  const {data: proc} = await supa.from('processos').select('numero').eq('id',_procEditId).single();
+  await adicionarHistorico(_procEditId, proc?.numero, texto, 'manual');
+  input.disabled = false;
+  await carregarHistoricoProcesso(_procEditId);
 }
 
 // ─── LEAD MODAL SAVE ───

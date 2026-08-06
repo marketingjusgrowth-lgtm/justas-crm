@@ -1063,6 +1063,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
           <select id="pm-area"><option value="">Selecionar...</option><option>Trabalhista</option><option>Tributário</option><option>Família</option><option>Empresarial</option><option>Cível</option><option>Previdenciário</option><option>Criminal</option><option>Imobiliário</option></select>
         </div>
         <div class="fg"><label>Tribunal</label><input id="pm-tribunal" type="text" placeholder="Ex: TJPR, TRT-9, STJ"/></div>
+        <div class="fg"><label>Polo (qual parte você representa)</label>
+          <select id="pm-polo"><option value="Autor">Autor / Requerente</option><option value="Réu">Réu / Requerido</option><option value="Terceiro">Terceiro Interessado</option><option value="Exequente">Exequente</option><option value="Executado">Executado</option></select>
+        </div>
         <div class="fg"><label>Fase</label>
           <select id="pm-fase"><option>Conhecimento</option><option>Recursal</option><option>Execução</option><option>Acordo</option><option>Arquivado</option></select>
         </div>
@@ -1234,6 +1237,16 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
       <div>
         <label style="font-size:0.78rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px">Cliente *</label>
         <input id="sc-cliente" type="text" placeholder="Nome do cliente" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.85rem;font-family:inherit;background:var(--card);color:var(--text);outline:none;box-sizing:border-box"/>
+      </div>
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px">Polo (qual parte você representa)</label>
+        <select id="sc-polo" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.85rem;font-family:inherit;background:var(--card);color:var(--text);box-sizing:border-box">
+          <option value="Autor">Autor / Requerente</option>
+          <option value="Réu">Réu / Requerido</option>
+          <option value="Terceiro">Terceiro Interessado</option>
+          <option value="Exequente">Exequente</option>
+          <option value="Executado">Executado</option>
+        </select>
       </div>
       <div>
         <label style="font-size:0.78rem;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px">Ação Requerida</label>
@@ -1820,6 +1833,8 @@ async function buscarDatajud(){
     const tribunal = TJ_NOME[indexKey] || indexKey.toUpperCase().replace('TRF','TRF-').replace('TRT','TRT-');
     const fmtData = (s) => { if(!s) return '—'; const d = new Date(s.length===10 ? s+'T12:00:00' : s); return isNaN(d) ? s.slice(0,10).split('-').reverse().join('/') : d.toLocaleDateString('pt-BR'); };
     const movimentos = (src.movimentos || []).slice(0,15);
+    // Guardar movimentos com prazo para importar automaticamente ao salvar
+    _djMovimentos = movimentos.filter(m => Object.keys(MOVIMENTO_PRAZOS).includes(String(m.codigo)));
 
     const movHtml = movimentos.map((m)=>{
       const dt = m.dataHora ? new Date(m.dataHora).toLocaleDateString('pt-BR') : '—';
@@ -1863,6 +1878,7 @@ async function buscarDatajud(){
 
 // ─── PROCESSOS SUPABASE ───
 let _djDados = null;
+let _djMovimentos = []; // movimentos com flag de prazo detectados na busca DataJud
 
 function abrirSalvarCRM(dados) {
   _djDados = dados;
@@ -1895,6 +1911,7 @@ async function confirmarSalvarCRM() {
   if(!cliente){ document.getElementById('sc-cliente').style.borderColor='var(--red)'; return; }
   const btn = document.getElementById('sc-btn');
   btn.textContent='Salvando...'; btn.disabled=true;
+  const polo = document.getElementById('sc-polo')?.value || 'Autor';
   const {error} = await supa.from('processos').insert({
     numero:         _djDados.fmt,
     cliente_nome:   cliente,
@@ -1902,20 +1919,53 @@ async function confirmarSalvarCRM() {
     tribunal:       _djDados.tribunal,
     fase:           'Conhecimento',
     status:         'Em andamento',
+    polo:           polo,
     acao_requerida: document.getElementById('sc-acao').value.trim(),
     origem:         'datajud'
   });
   btn.textContent='Salvar no CRM'; btn.disabled=false;
   if(error){ alert('Erro ao salvar: '+error.message); return; }
+
+  // Criar prazos automaticamente dos movimentos DataJud detectados
+  if(_djMovimentos.length){
+    const prazosInsert = _djMovimentos.map(m=>{
+      const dataHora = m.dataHora ? new Date(m.dataHora) : null;
+      // Calcula prazo somando os dias indicados pelo tipo de movimento
+      const diasMap = {12778:15,12490:15,11010:5,12213:0,12584:15,11007:0,12592:0,22:0,131:0,848:0};
+      const dias = diasMap[m.codigo] ?? 15;
+      let dataPrazo = null;
+      if(dataHora && !isNaN(dataHora)){
+        const d = new Date(dataHora); d.setDate(d.getDate()+dias);
+        dataPrazo = d.toISOString().split('T')[0];
+      }
+      return {
+        titulo: MOVIMENTO_PRAZOS[m.codigo] || m.nome || 'Prazo DataJud',
+        processo_numero: _djDados.fmt,
+        cliente_nome: cliente,
+        tipo: 'Prazo Processual',
+        prioridade: dias <= 5 ? 'urgente' : dias <= 10 ? 'alta' : 'media',
+        status: 'Pendente',
+        data_prazo: dataPrazo,
+        origem: 'datajud',
+      };
+    });
+    await supa.from('prazos').insert(prazosInsert);
+  }
+
+  const nPrazosGerados = _djMovimentos.length;
+  _djMovimentos = [];
   fecharSalvarCRM();
   closeDatajud();
   carregarProcessos();
   carregarDashboard();
+  const msg = nPrazosGerados > 0
+    ? `✓ Processo salvo + ${nPrazosGerados} prazo(s) criado(s) automaticamente!`
+    : '✓ Processo salvo no CRM!';
   const toast = document.createElement('div');
-  toast.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#059669;color:#fff;padding:10px 22px;border-radius:8px;font-size:0.85rem;z-index:9999;font-weight:600';
-  toast.textContent='✓ Processo salvo no CRM!';
+  toast.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#059669;color:#fff;padding:10px 22px;border-radius:8px;font-size:0.85rem;z-index:9999;font-weight:600;text-align:center';
+  toast.textContent = msg;
   document.body.appendChild(toast);
-  setTimeout(()=>toast.remove(), 3000);
+  setTimeout(()=>toast.remove(), 4000);
 }
 
 const AREA_COLORS = {
@@ -1975,7 +2025,7 @@ async function carregarProcessos() {
       <td><div class="cell"><span style="padding:2px 8px;border-radius:5px;font-size:0.75rem;font-weight:600;background:${cor.bg};color:${cor.color}">${p.area||'—'}</span></div></td>
       <td><div class="cell cell-muted">${p.tribunal||'—'}</div></td>
       <td><div class="cell"><span style="padding:2px 8px;border-radius:5px;font-size:0.75rem;background:#DBEAFE;color:#1D4ED8">${p.fase||'—'}</span></div></td>
-      <td><div class="cell">—</div></td>
+      <td><div class="cell">${p.polo ? `<span style="padding:2px 8px;border-radius:5px;font-size:0.73rem;font-weight:600;background:${p.polo==='Réu'||p.polo==='Requerido'||p.polo==='Executado'?'#FEE2E2':'#D1FAE5'};color:${p.polo==='Réu'||p.polo==='Requerido'||p.polo==='Executado'?'#DC2626':'#065F46'}">${p.polo}</span>` : '—'}</div></td>
       <td><div class="cell cell-muted" style="font-size:0.77rem">${p.acao_requerida||'—'}</div></td>
       <td><div class="cell">${p.origem==='datajud'?'<span style="background:#2563EB;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.68rem;font-weight:600">✓ DataJud</span>':'—'}</div></td>
       <td><div class="cell" style="gap:0;padding-left:8px">${resps.length ? respsHtml : '—'} ${visivelTag}</div></td>
@@ -2484,56 +2534,85 @@ async function carregarDashboard(){
     supa.from('leads').select('id', {count:'exact', head:true}),
     supa.from('clientes').select('id', {count:'exact', head:true}).neq('tipo','ENCERRADOS'),
     supa.from('processos').select('id', {count:'exact', head:true}),
-    supa.from('prazos').select('id,data_prazo,prioridade,status').neq('status','Concluído'),
+    supa.from('prazos').select('id,titulo,data_prazo,prioridade,status,cliente_nome,processo_numero').neq('status','Concluído'),
   ]);
 
-  // Sidebar badges
   const nLeads = resLeads.count ?? 0;
   const nProcessos = resProcessos.count ?? 0;
-  const nPrazos = (resPrazos.data||[]).filter(p=>p.status!=='Concluído').length;
+  const prazos = resPrazos.data || [];
+  const pendentes = prazos.filter(p => p.status !== 'Concluído');
+
+  const _diff = (p) => p.data_prazo ? Math.floor((new Date(p.data_prazo+'T12:00:00')-hoje)/(1000*60*60*24)) : null;
+
+  const vencidos   = pendentes.filter(p=>{ const d=_diff(p); return d!==null && d<0; });
+  const hoje_list  = pendentes.filter(p=>_diff(p)===0);
+  const amanha     = pendentes.filter(p=>_diff(p)===1);
+  const semana     = pendentes.filter(p=>{ const d=_diff(p); return d!==null && d>1 && d<7; });
+  const criticos   = [...vencidos, ...hoje_list, ...amanha];
+
+  // Sidebar badges
   document.getElementById('badge-pipeline').textContent = nLeads;
   document.getElementById('badge-processos').textContent = nProcessos;
   const badgePrazos = document.getElementById('badge-prazos');
-  badgePrazos.textContent = nPrazos;
-  badgePrazos.style.background = nPrazos > 0 ? '#EF4444' : 'rgba(255,255,255,0.15)';
+  badgePrazos.textContent = pendentes.length;
+  badgePrazos.style.background = vencidos.length > 0 || hoje_list.length > 0 ? '#EF4444' : pendentes.length > 0 ? '#F59E0B' : 'rgba(255,255,255,0.15)';
 
-  // Métricas do dashboard
+  // Métricas
   document.getElementById('dash-leads').textContent = nLeads;
   document.getElementById('dash-clientes').textContent = resClientes.count ?? 0;
   document.getElementById('dash-processos').textContent = nProcessos;
-
-  const prazos = resPrazos.data || [];
-  const pendentes = prazos.filter(p => p.status !== 'Concluído');
-  const criticos  = pendentes.filter(p => {
-    if(!p.data_prazo) return false;
-    const d = new Date(p.data_prazo+'T12:00:00');
-    return Math.floor((d-hoje)/(1000*60*60*24)) <= 2;
-  });
-
   document.getElementById('dash-prazos').textContent = pendentes.length;
-  document.getElementById('dash-prazos-sub').textContent =
-    criticos.length > 0 ? `${criticos.length} vencem hoje ou em breve` : 'Nenhum prazo urgente';
-  document.getElementById('dash-prazos-sub').style.color =
-    criticos.length > 0 ? 'var(--red)' : 'var(--text-muted)';
+  const subMsg = vencidos.length > 0 ? `⚠ ${vencidos.length} vencido(s)` : hoje_list.length > 0 ? `${hoje_list.length} vence(m) hoje` : amanha.length > 0 ? `${amanha.length} vence(m) amanhã` : 'Nenhum prazo urgente';
+  document.getElementById('dash-prazos-sub').textContent = subMsg;
+  document.getElementById('dash-prazos-sub').style.color = (vencidos.length||hoje_list.length) ? 'var(--red)' : amanha.length ? 'var(--yellow)' : 'var(--text-muted)';
 
-  // Prazos críticos (lista)
+  // Prazos críticos — lista detalhada
   const badge = document.getElementById('dash-prazos-badge');
   const lista = document.getElementById('dash-prazos-lista');
-  if(criticos.length === 0){
+
+  const _prazoRow = (p, diff) => {
+    const tag  = diff < 0 ? `${Math.abs(diff)}d atraso` : diff === 0 ? 'HOJE' : diff === 1 ? 'Amanhã' : `${diff} dias`;
+    const cls  = diff < 0 ? 'p-urgent' : diff === 0 ? 'p-urgent' : diff <= 1 ? 'p-warn' : 'p-ok';
+    const sub  = [p.processo_numero, p.cliente_nome].filter(Boolean).join(' · ') || 'Sem processo vinculado';
+    return `<div class="prazo-row" onclick="nav('prazos',document.querySelector('[onclick*=prazos]'));carregarPrazos()" style="cursor:pointer">
+      <div class="prazo-info" style="flex:1">
+        <strong style="font-size:0.85rem">${p.titulo||'Sem título'}</strong>
+        <span style="font-size:0.75rem;color:var(--text-muted)">${sub}</span>
+      </div>
+      <span class="p-tag ${cls}">${tag}</span>
+    </div>`;
+  };
+
+  if(criticos.length === 0 && semana.length === 0){
     badge.style.display = 'none';
     lista.innerHTML = '<div style="padding:20px 16px;text-align:center;color:var(--text-muted);font-size:0.85rem">Nenhum prazo crítico no momento.</div>';
   } else {
     badge.style.display = '';
-    badge.textContent = `${criticos.length} urgente${criticos.length>1?'s':''}`;
-    lista.innerHTML = criticos.slice(0,5).map(p=>{
-      const diff = Math.floor((new Date(p.data_prazo+'T12:00:00')-hoje)/(1000*60*60*24));
-      const tag = diff < 0 ? 'VENCIDO' : diff === 0 ? 'HOJE' : `${diff} dia${diff>1?'s':''}`;
-      const cls = diff <= 0 ? 'p-urgent' : diff <= 2 ? 'p-warn' : 'p-ok';
-      return `<div class="prazo-row"><div class="prazo-info" style="flex:1"><strong>${p.id}</strong></div><span class="p-tag ${cls}">${tag}</span></div>`;
-    }).join('');
+    badge.textContent = criticos.length > 0 ? `${criticos.length} crítico${criticos.length>1?'s':''}` : `${semana.length} esta semana`;
+    badge.style.background = criticos.length > 0 ? 'var(--red-bg)' : 'var(--yellow-bg)';
+    badge.style.color = criticos.length > 0 ? 'var(--red)' : 'var(--yellow)';
+
+    let html = '';
+    if(vencidos.length){
+      html += `<div style="padding:6px 16px 2px;font-size:0.72rem;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.05em">Vencidos (${vencidos.length})</div>`;
+      html += vencidos.slice(0,3).map(p=>_prazoRow(p,_diff(p))).join('');
+    }
+    if(hoje_list.length){
+      html += `<div style="padding:6px 16px 2px;font-size:0.72rem;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.05em">Hoje (${hoje_list.length})</div>`;
+      html += hoje_list.map(p=>_prazoRow(p,0)).join('');
+    }
+    if(amanha.length){
+      html += `<div style="padding:6px 16px 2px;font-size:0.72rem;font-weight:700;color:var(--yellow);text-transform:uppercase;letter-spacing:.05em">Amanhã (${amanha.length})</div>`;
+      html += amanha.map(p=>_prazoRow(p,1)).join('');
+    }
+    if(!vencidos.length && !hoje_list.length && !amanha.length && semana.length){
+      html += `<div style="padding:6px 16px 2px;font-size:0.72rem;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.05em">Esta semana (${semana.length})</div>`;
+      html += semana.slice(0,4).map(p=>_prazoRow(p,_diff(p))).join('');
+    }
+    lista.innerHTML = html || '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:0.85rem">Nenhum prazo crítico.</div>';
   }
 
-  // Tarefas por prioridade
+  // Barras de prioridade
   const contagem = {urgente:0,alta:0,media:0,baixa:0};
   pendentes.forEach(p=>{ if(contagem[p.prioridade]!==undefined) contagem[p.prioridade]++; else contagem.media++; });
   const total = pendentes.length || 1;
@@ -2728,11 +2807,12 @@ async function abrirModalProcesso(id){
       setSelect('pm-area', data.area||'');
       setSelect('pm-fase', data.fase||'Conhecimento');
       setSelect('pm-status', data.status||'Em andamento');
+      setSelect('pm-polo', data.polo||'Autor');
       _renderRespCheckboxes(data.responsaveis||[]);
     }
   } else {
     ['pm-numero','pm-cliente','pm-tribunal','pm-acao','pm-obs'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
-    ['pm-area','pm-fase','pm-status'].forEach(i=>{const el=document.getElementById(i);if(el)el.selectedIndex=0;});
+    ['pm-area','pm-fase','pm-status','pm-polo'].forEach(i=>{const el=document.getElementById(i);if(el)el.selectedIndex=0;});
     document.getElementById('pm-visivel-todos').checked = false;
     _renderRespCheckboxes([_loginNome]);
   }
@@ -2754,6 +2834,7 @@ async function salvarProcesso(){
     cliente_nome:   cliente,
     area:           document.getElementById('pm-area').value||null,
     tribunal:       document.getElementById('pm-tribunal').value.trim()||null,
+    polo:           document.getElementById('pm-polo').value||'Autor',
     fase:           document.getElementById('pm-fase').value,
     status:         document.getElementById('pm-status').value,
     acao_requerida: document.getElementById('pm-acao').value.trim()||null,

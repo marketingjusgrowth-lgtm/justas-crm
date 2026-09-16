@@ -2570,7 +2570,7 @@ async function carregarDashboard(){
 
   const [resLeads, resClientes, resProcessos, resPrazos] = await Promise.all([
     supa.from('leads').select('id', {count:'exact', head:true}),
-    supa.from('clientes').select('id', {count:'exact', head:true}).neq('tipo','ENCERRADOS'),
+    supa.from('clientes').select('id', {count:'exact', head:true}).neq('status','Encerrado'),
     supa.from('processos').select('id', {count:'exact', head:true}),
     supa.from('prazos').select('id,titulo,data_prazo,prioridade,status,cliente_nome,processo_numero').neq('status','Concluído'),
   ]);

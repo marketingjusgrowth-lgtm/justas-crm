@@ -2750,16 +2750,23 @@ async function carregarPrazos(){
           ${!p.cliente_nome&&!p.processo_numero?'<span style="color:var(--text-muted)">—</span>':''}
         </div></td>
         <td><div class="cell" style="flex-direction:column;align-items:flex-start;gap:3px">
-          <span style="font-size:0.82rem;font-weight:600;color:var(--text)">${fmtData}</span>
-          ${diasBadge}
+          ${isConcluidas && p.data_conclusao
+            ? `<span style="font-size:0.75rem;color:var(--text-muted)">Prazo: ${fmtData}</span>
+               <span style="font-size:0.78rem;font-weight:600;color:#059669">✓ Concluído em ${p.data_conclusao.split('-').reverse().join('/')}</span>`
+            : `<span style="font-size:0.82rem;font-weight:600;color:var(--text)">${fmtData}</span>${diasBadge}`
+          }
         </div></td>
-        <td><div class="cell"><span class="badge" style="background:${ps.bg};color:${ps.color}">${ps.label}</span></div></td>
+        <td><div class="cell">${isConcluidas?'—':`<span class="badge" style="background:${ps.bg};color:${ps.color}">${ps.label}</span>`}</div></td>
         <td><div class="cell">${origemHtml}</div></td>
         <td><div class="cell"><div class="av av-sm" style="background:${avBg}" title="${p.responsavel||''}">${av}</div></div></td>
         <td><div class="cell" style="gap:8px;display:flex;align-items:center;flex-wrap:nowrap">
-          <span class="status-cell" style="background:${ss.bg};color:${ss.color};cursor:pointer;white-space:nowrap"
-            onclick="event.stopPropagation();alterarStatusPrazo(this,'${p.id}')" title="Clique para mudar status">${p.status||'Pendente'}</span>
-          ${concluirBtn}
+          ${isConcluidas
+            ? `<button onclick="event.stopPropagation();reabrirTarefa('${p.id}',this)"
+                style="background:#EFF6FF;color:#2563EB;border:1px solid #BFDBFE;border-radius:6px;padding:5px 12px;font-size:0.76rem;font-weight:600;cursor:pointer;white-space:nowrap">↩ Reabrir</button>`
+            : `<span class="status-cell" style="background:${ss.bg};color:${ss.color};cursor:pointer;white-space:nowrap"
+                onclick="event.stopPropagation();alterarStatusPrazo(this,'${p.id}')" title="Clique para mudar status">${p.status||'Pendente'}</span>
+               ${concluirBtn}`
+          }
         </div></td>
       </tr>`;
     });
@@ -3560,11 +3567,23 @@ async function salvarTarefa(){
 
 async function concluirTarefaRapido(id, btn){
   btn.textContent='...'; btn.disabled=true;
-  const {error} = await supa.from('prazos').update({status:'Concluído'}).eq('id',id);
-  if(error){ showToast('Erro: '+error.message,'#EF4444'); btn.textContent='✓ Feito'; btn.disabled=false; return; }
+  const {error} = await supa.from('prazos').update({
+    status:'Concluído',
+    data_conclusao: new Date().toISOString().split('T')[0]
+  }).eq('id',id);
+  if(error){ showToast('Erro: '+error.message,'#EF4444'); btn.textContent='✓ Concluir'; btn.disabled=false; return; }
   carregarPrazos();
   carregarDashboard();
   showToast('✓ Tarefa concluída!');
+}
+
+async function reabrirTarefa(id, btn){
+  btn.textContent='...'; btn.disabled=true;
+  const {error} = await supa.from('prazos').update({status:'Pendente', data_conclusao:null}).eq('id',id);
+  if(error){ showToast('Erro: '+error.message,'#EF4444'); btn.textContent='↩ Reabrir'; btn.disabled=false; return; }
+  carregarPrazos();
+  carregarDashboard();
+  showToast('↩ Tarefa reaberta!','#2563EB');
 }
 
 // ─── EXPORTAR DADOS ───

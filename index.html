@@ -756,14 +756,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
               <tr style="background:#F8FAFC">
                 <th style="width:36px;background:#F8FAFC"></th>
                 <th style="background:#F8FAFC;color:#475569;font-size:0.72rem;font-weight:700;padding:10px 12px;border-bottom:2px solid #E2E8F0;white-space:nowrap">Tarefa / Prazo</th>
-                <th style="background:#F8FAFC;color:#475569;font-size:0.72rem;font-weight:700;padding:10px 12px;border-bottom:2px solid #E2E8F0;white-space:nowrap">Processo</th>
-                <th style="background:#F8FAFC;color:#475569;font-size:0.72rem;font-weight:700;padding:10px 12px;border-bottom:2px solid #E2E8F0;white-space:nowrap">Cliente</th>
-                <th style="background:#F8FAFC;color:#475569;font-size:0.72rem;font-weight:700;padding:10px 12px;border-bottom:2px solid #E2E8F0;white-space:nowrap">Tipo</th>
+                <th style="background:#F8FAFC;color:#475569;font-size:0.72rem;font-weight:700;padding:10px 12px;border-bottom:2px solid #E2E8F0;white-space:nowrap">Cliente / Processo</th>
                 <th style="background:#F8FAFC;color:#475569;font-size:0.72rem;font-weight:700;padding:10px 12px;border-bottom:2px solid #E2E8F0;white-space:nowrap">Prazo</th>
                 <th style="background:#F8FAFC;color:#475569;font-size:0.72rem;font-weight:700;padding:10px 12px;border-bottom:2px solid #E2E8F0;white-space:nowrap">Prioridade</th>
                 <th style="background:#F8FAFC;color:#475569;font-size:0.72rem;font-weight:700;padding:10px 12px;border-bottom:2px solid #E2E8F0;white-space:nowrap">Origem</th>
-                <th style="background:#F8FAFC;color:#475569;font-size:0.72rem;font-weight:700;padding:10px 12px;border-bottom:2px solid #E2E8F0;white-space:nowrap">Responsável</th>
-                <th style="background:#F8FAFC;color:#475569;font-size:0.72rem;font-weight:700;padding:10px 12px;border-bottom:2px solid #E2E8F0;white-space:nowrap">Status</th>
+                <th style="background:#F8FAFC;color:#475569;font-size:0.72rem;font-weight:700;padding:10px 12px;border-bottom:2px solid #E2E8F0;white-space:nowrap">Resp.</th>
+                <th style="background:#F8FAFC;color:#475569;font-size:0.72rem;font-weight:700;padding:10px 12px;border-bottom:2px solid #E2E8F0;white-space:nowrap">Status / Ação</th>
               </tr>
             </thead>
             <tbody id="prazos-tbody">
@@ -2663,16 +2661,16 @@ async function carregarDashboard(){
 async function carregarPrazos(){
   const tbody = document.getElementById('prazos-tbody');
   if(!tbody) return;
-  tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--text-muted)">Carregando...</td></tr>';
+  tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted)">Carregando...</td></tr>';
 
   const {data, error} = await supa.from('prazos').select('*').order('data_prazo',{ascending:true,nullsFirst:false});
   if(error){
-    tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:20px;color:var(--red);font-size:0.85rem">
+    tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--red);font-size:0.85rem">
       Erro: ${error.message}</td></tr>`;
     return;
   }
   if(!data||data.length===0){
-    tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--text-muted)">Nenhum prazo ou tarefa cadastrado.<br>Clique em "+ Nova Tarefa" ou cadastre um processo.</td></tr>';
+    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted)">Nenhum prazo ou tarefa cadastrado.<br>Clique em "+ Nova Tarefa" ou cadastre um processo.</td></tr>';
     return;
   }
 
@@ -2685,7 +2683,7 @@ async function carregarPrazos(){
     const rows=grupos[grupoNome];
     if(!rows.length) return;
     const cfg=GRUPOS_CONFIG[grupoNome];
-    html+=`<tr data-grupo="${grupoNome}"><td colspan="10" style="padding:0;border:none">
+    html+=`<tr data-grupo="${grupoNome}"><td colspan="8" style="padding:0;border:none">
       <div class="group-header" style="cursor:pointer">
         <div class="group-dot" style="background:${cfg.dot}"></div>
         <span class="group-name">${grupoNome}</span>
@@ -2698,26 +2696,59 @@ async function carregarPrazos(){
       const fmtData=p.data_prazo?p.data_prazo.split('-').reverse().join('/'):'—';
       const av=(p.responsavel||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
       const avBg=['#2563EB','#059669','#7C3AED'][(av.charCodeAt(0)||0)%3];
-      const rowBg=(grupoNome==='VENCIDOS'||grupoNome==='HOJE')?'background:#FFF5F5':'';
-      const urgTag=(grupoNome==='HOJE'||grupoNome==='VENCIDOS')?'p-urgent':'';
+
+      // Dias restantes badge
+      let diasBadge='';
+      let borderColor='transparent';
+      let rowBg='';
+      if(p.data_prazo){
+        const diff=Math.floor((new Date(p.data_prazo+'T12:00:00')-new Date())/(1000*60*60*24));
+        if(diff<0){
+          diasBadge=`<span style="background:#FEE2E2;color:#DC2626;font-size:0.68rem;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px;white-space:nowrap">${Math.abs(diff)}d atraso</span>`;
+          borderColor='#EF4444'; rowBg='background:#FFFBFB';
+        } else if(diff===0){
+          diasBadge=`<span style="background:#FEF3C7;color:#D97706;font-size:0.68rem;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px;white-space:nowrap">HOJE</span>`;
+          borderColor='#F59E0B'; rowBg='background:#FFFDF5';
+        } else if(diff===1){
+          diasBadge=`<span style="background:#FEF3C7;color:#D97706;font-size:0.68rem;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px;white-space:nowrap">amanhã</span>`;
+          borderColor='#FBBF24';
+        } else if(diff<=7){
+          diasBadge=`<span style="background:#EFF6FF;color:#2563EB;font-size:0.68rem;font-weight:600;padding:2px 7px;border-radius:20px;margin-left:6px;white-space:nowrap">${diff}d</span>`;
+          borderColor='#93C5FD';
+        } else {
+          diasBadge=`<span style="background:#F0FDF4;color:#16A34A;font-size:0.68rem;font-weight:600;padding:2px 7px;border-radius:20px;margin-left:6px;white-space:nowrap">${diff}d</span>`;
+          borderColor='#86EFAC';
+        }
+      }
+
       const origemHtml=p.origem==='datajud'
-        ?'<span style="background:#2563EB;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.68rem;font-weight:600">✓ DataJud</span>'
-        :(p.origem==='processo'?'<span style="background:#7C3AED;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.68rem;font-weight:600">Processo</span>':'Manual');
-      html+=`<tr style="${rowBg};cursor:pointer" data-id="${p.id}" data-grupo="${grupoNome}" data-prioridade="${p.prioridade||''}" onclick="editarPrazo('${p.id}')">
+        ?'<span style="background:#DBEAFE;color:#1D4ED8;padding:2px 7px;border-radius:4px;font-size:0.68rem;font-weight:600">DataJud</span>'
+        :(p.origem==='processo'?'<span style="background:#EDE9FE;color:#6D28D9;padding:2px 7px;border-radius:4px;font-size:0.68rem;font-weight:600">Processo</span>'
+        :'<span style="color:var(--text-muted);font-size:0.75rem">Manual</span>');
+
+      const concluirBtn=p.status!=='Concluído'
+        ?`<button onclick="event.stopPropagation();concluirTarefaRapido('${p.id}',this)"
+            style="background:#059669;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:0.76rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">✓ Concluir</button>`:'';
+
+      html+=`<tr style="${rowBg};cursor:pointer;border-left:3px solid ${borderColor}" data-id="${p.id}" data-grupo="${grupoNome}" data-prioridade="${p.prioridade||''}" onclick="editarPrazo('${p.id}')">
         <td onclick="event.stopPropagation()"><input type="checkbox" style="accent-color:var(--blue)" onchange="atualizarBarraAcoes()" onclick="event.stopPropagation()"/></td>
-        <td><div class="cell cell-name">${p.titulo||'—'}</div></td>
-        <td><div class="cell" style="font-size:0.77rem;color:var(--blue)">${p.processo_numero||'—'}</div></td>
-        <td><div class="cell">${p.cliente_nome||'—'}</div></td>
-        <td><div class="cell"><span class="badge" style="background:var(--blue-mid);color:#1D4ED8">${p.tipo||'Outro'}</span></div></td>
-        <td><div class="cell"><span class="p-tag ${urgTag}">${fmtData}</span></div></td>
+        <td><div class="cell cell-name" style="font-size:0.85rem;font-weight:600">${p.titulo||'—'}</div></td>
+        <td><div class="cell" style="flex-direction:column;align-items:flex-start;gap:2px">
+          ${p.cliente_nome?`<span style="font-size:0.8rem;color:var(--text)">${p.cliente_nome}</span>`:''}
+          ${p.processo_numero?`<span style="font-size:0.72rem;color:var(--blue)">${p.processo_numero}</span>`:''}
+          ${!p.cliente_nome&&!p.processo_numero?'<span style="color:var(--text-muted)">—</span>':''}
+        </div></td>
+        <td><div class="cell" style="flex-direction:column;align-items:flex-start;gap:3px">
+          <span style="font-size:0.82rem;font-weight:600;color:var(--text)">${fmtData}</span>
+          ${diasBadge}
+        </div></td>
         <td><div class="cell"><span class="badge" style="background:${ps.bg};color:${ps.color}">${ps.label}</span></div></td>
         <td><div class="cell">${origemHtml}</div></td>
-        <td><div class="cell"><div class="av av-sm" style="background:${avBg}">${av}</div></div></td>
-        <td><div class="cell" style="gap:6px;display:flex;align-items:center">
-          <span class="status-cell" style="background:${ss.bg};color:${ss.color};cursor:pointer"
+        <td><div class="cell"><div class="av av-sm" style="background:${avBg}" title="${p.responsavel||''}">${av}</div></div></td>
+        <td><div class="cell" style="gap:8px;display:flex;align-items:center;flex-wrap:nowrap">
+          <span class="status-cell" style="background:${ss.bg};color:${ss.color};cursor:pointer;white-space:nowrap"
             onclick="event.stopPropagation();alterarStatusPrazo(this,'${p.id}')" title="Clique para mudar status">${p.status||'Pendente'}</span>
-          ${p.status!=='Concluído'?`<button onclick="event.stopPropagation();concluirTarefaRapido('${p.id}',this)" title="Marcar como concluída"
-            style="background:#D1FAE5;color:#065F46;border:none;border-radius:6px;padding:3px 8px;font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap">✓ Feito</button>`:''}
+          ${concluirBtn}
         </div></td>
       </tr>`;
     });

@@ -2549,9 +2549,11 @@ const GRUPOS_CONFIG = {
   'ESTE MÊS':   {dot:'#2563EB'},
   'FUTUROS':     {dot:'#059669'},
   'SEM PRAZO':   {dot:'#94A3B8'},
+  'CONCLUÍDAS':  {dot:'#94A3B8'},
 };
 
-function getPrazoGrupo(dataPrazo){
+function getPrazoGrupo(dataPrazo, status){
+  if(status === 'Concluído') return 'CONCLUÍDAS';
   if(!dataPrazo) return 'SEM PRAZO';
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   const prazo = new Date(dataPrazo+'T12:00:00');
@@ -2676,19 +2678,25 @@ async function carregarPrazos(){
 
   const grupos = {};
   Object.keys(GRUPOS_CONFIG).forEach(g=>{grupos[g]=[];});
-  data.forEach(p=>{const g=getPrazoGrupo(p.data_prazo); if(grupos[g]) grupos[g].push(p);});
+  data.forEach(p=>{const g=getPrazoGrupo(p.data_prazo, p.status); if(grupos[g]) grupos[g].push(p);});
 
   let html='';
   Object.keys(grupos).forEach(grupoNome=>{
     const rows=grupos[grupoNome];
     if(!rows.length) return;
     const cfg=GRUPOS_CONFIG[grupoNome];
+    const isConcluidas = grupoNome==='CONCLUÍDAS';
+    const startCollapsed = isConcluidas;
+    const toggleIcon = startCollapsed ? '▸' : '▾';
+    const headerExtra = isConcluidas
+      ? 'border-top:2px dashed var(--border);margin-top:8px;opacity:0.7'
+      : '';
     html+=`<tr data-grupo="${grupoNome}"><td colspan="8" style="padding:0;border:none">
-      <div class="group-header" style="cursor:pointer">
+      <div class="group-header" style="cursor:pointer;${headerExtra}">
         <div class="group-dot" style="background:${cfg.dot}"></div>
         <span class="group-name">${grupoNome}</span>
         <span class="group-count">${rows.length}</span>
-        <span class="group-toggle">▾</span>
+        <span class="group-toggle">${toggleIcon}</span>
       </div></td></tr>`;
     rows.forEach(p=>{
       const ps=PRIO_STYLES[p.prioridade]||PRIO_STYLES.media;
@@ -2730,9 +2738,12 @@ async function carregarPrazos(){
         ?`<button onclick="event.stopPropagation();concluirTarefaRapido('${p.id}',this)"
             style="background:#059669;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:0.76rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">✓ Concluir</button>`:'';
 
-      html+=`<tr style="${rowBg};cursor:pointer;border-left:3px solid ${borderColor}" data-id="${p.id}" data-grupo="${grupoNome}" data-prioridade="${p.prioridade||''}" onclick="editarPrazo('${p.id}')">
+      const rowDisplay = isConcluidas ? 'display:none' : '';
+      const rowOpacity = isConcluidas ? 'opacity:0.6' : '';
+      const titleDecor = isConcluidas ? 'text-decoration:line-through;color:var(--text-muted)' : 'font-size:0.85rem;font-weight:600';
+      html+=`<tr style="${rowBg};cursor:pointer;border-left:3px solid ${borderColor};${rowDisplay};${rowOpacity}" data-id="${p.id}" data-grupo="${grupoNome}" data-prioridade="${p.prioridade||''}" onclick="editarPrazo('${p.id}')">
         <td onclick="event.stopPropagation()"><input type="checkbox" style="accent-color:var(--blue)" onchange="atualizarBarraAcoes()" onclick="event.stopPropagation()"/></td>
-        <td><div class="cell cell-name" style="font-size:0.85rem;font-weight:600">${p.titulo||'—'}</div></td>
+        <td><div class="cell cell-name" style="${titleDecor}">${p.titulo||'—'}</div></td>
         <td><div class="cell" style="flex-direction:column;align-items:flex-start;gap:2px">
           ${p.cliente_nome?`<span style="font-size:0.8rem;color:var(--text)">${p.cliente_nome}</span>`:''}
           ${p.processo_numero?`<span style="font-size:0.72rem;color:var(--blue)">${p.processo_numero}</span>`:''}
@@ -2763,7 +2774,7 @@ async function carregarPrazos(){
       toggle.textContent=isOpen?'▸':'▾';
       let next=row.nextElementSibling;
       while(next&&!next.querySelector('.group-header')){
-        next.style.display=isOpen?'none':'';
+        next.style.display=isOpen?'none':'table-row';
         next=next.nextElementSibling;
       }
     });

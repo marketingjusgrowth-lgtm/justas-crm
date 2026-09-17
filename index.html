@@ -2543,13 +2543,14 @@ const STATUS_PRAZO_STYLE = {
   'Cancelado':    {bg:'var(--red-bg)',color:'var(--red)'},
 };
 const GRUPOS_CONFIG = {
-  'VENCIDOS':    {dot:'#DC2626'},
-  'HOJE':        {dot:'#DC2626'},
-  'ESTA SEMANA': {dot:'#D97706'},
-  'ESTE MÊS':   {dot:'#2563EB'},
-  'FUTUROS':     {dot:'#059669'},
-  'SEM PRAZO':   {dot:'#94A3B8'},
-  'CONCLUÍDAS':  {dot:'#94A3B8'},
+  'VENCIDOS':      {dot:'#DC2626'},
+  'HOJE':          {dot:'#DC2626'},
+  'ESTA SEMANA':   {dot:'#D97706'},
+  'ESTE MÊS':      {dot:'#2563EB'},
+  'PRÓXIMO MÊS':   {dot:'#7C3AED'},
+  'FUTUROS':       {dot:'#059669'},
+  'SEM PRAZO':     {dot:'#94A3B8'},
+  'CONCLUÍDAS':    {dot:'#94A3B8'},
 };
 
 function getPrazoGrupo(dataPrazo, status){
@@ -2561,7 +2562,12 @@ function getPrazoGrupo(dataPrazo, status){
   if(diff<0)  return 'VENCIDOS';
   if(diff===0) return 'HOJE';
   if(diff<7)   return 'ESTA SEMANA';
-  if(diff<=30) return 'ESTE MÊS';
+  // Mesmo mês e ano calendário
+  if(prazo.getMonth()===hoje.getMonth() && prazo.getFullYear()===hoje.getFullYear()) return 'ESTE MÊS';
+  // Próximo mês calendário
+  const proxMes = new Date(hoje.getFullYear(), hoje.getMonth()+1, 1);
+  const fimProxMes = new Date(hoje.getFullYear(), hoje.getMonth()+2, 0);
+  if(prazo>=proxMes && prazo<=fimProxMes) return 'PRÓXIMO MÊS';
   return 'FUTUROS';
 }
 
@@ -3513,7 +3519,7 @@ function filtrarPrazos(tipo, chip){
     let show = true;
     if(tipo==='urgente')      show = row.dataset.prioridade === 'urgente';
     else if(tipo==='semana')  show = ['HOJE','ESTA SEMANA','VENCIDOS'].includes(grupo);
-    else if(tipo==='mes')     show = ['HOJE','ESTA SEMANA','ESTE MÊS','VENCIDOS'].includes(grupo);
+    else if(tipo==='mes')     show = ['HOJE','ESTA SEMANA','ESTE MÊS','PRÓXIMO MÊS','VENCIDOS'].includes(grupo);
     row.style.display = show ? '' : 'none';
   });
 

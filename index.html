@@ -744,6 +744,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
           <div class="filter-chip" onclick="filtrarPrazos('urgente',this)">🔴 Urgentes</div>
           <div class="filter-chip" onclick="filtrarPrazos('semana',this)">⚠ Esta semana</div>
           <div class="filter-chip" onclick="filtrarPrazos('mes',this)">📅 Este mês</div>
+          <div class="filter-chip" onclick="filtrarPrazos('prazos',this)" style="border-color:#2563EB;color:#2563EB">📋 Prazos</div>
+          <div class="filter-chip" onclick="filtrarPrazos('tarefas',this)" style="border-color:#7C3AED;color:#7C3AED">☑ Tarefas</div>
           <div class="filter-chip active"><span class="epoc-badge" style="padding:1px 7px;font-size:0.7rem">E-proc</span> Auto-import</div>
           <div style="margin-left:auto;display:flex;gap:8px">
             <button class="btn btn-ghost btn-sm" onclick="exportarCSV('prazos')">⬇ Exportar</button>
@@ -2747,7 +2749,9 @@ async function carregarPrazos(){
       const rowDisplay = isConcluidas ? 'display:none' : '';
       const rowOpacity = isConcluidas ? 'opacity:0.6' : '';
       const titleDecor = isConcluidas ? 'text-decoration:line-through;color:var(--text-muted)' : 'font-size:0.85rem;font-weight:600';
-      html+=`<tr style="${rowBg};cursor:pointer;border-left:3px solid ${borderColor};${rowDisplay};${rowOpacity}" data-id="${p.id}" data-grupo="${grupoNome}" data-prioridade="${p.prioridade||''}" onclick="editarPrazo('${p.id}')">
+      const TIPOS_PRAZO = ['Prazo Processual','Audiência','Protocolo','Perícia'];
+      const tipoCat = TIPOS_PRAZO.includes(p.tipo) ? 'prazo' : 'tarefa';
+      html+=`<tr style="${rowBg};cursor:pointer;border-left:3px solid ${borderColor};${rowDisplay};${rowOpacity}" data-id="${p.id}" data-grupo="${grupoNome}" data-prioridade="${p.prioridade||''}" data-tipo-cat="${tipoCat}" onclick="editarPrazo('${p.id}')">
         <td onclick="event.stopPropagation()"><input type="checkbox" style="accent-color:var(--blue)" onchange="atualizarBarraAcoes()" onclick="event.stopPropagation()"/></td>
         <td><div class="cell cell-name" style="${titleDecor}">${p.titulo||'—'}</div></td>
         <td><div class="cell" style="flex-direction:column;align-items:flex-start;gap:2px">
@@ -3515,11 +3519,13 @@ function filtrarPrazos(tipo, chip){
   rows.forEach(row=>{
     if(row.querySelector('.group-header')) return;
     const grupo = row.dataset.grupo||'';
-    const badges = [...row.querySelectorAll('.badge')].map(b=>b.textContent);
+    const tipoCat = row.dataset.tipoCat||'';
     let show = true;
     if(tipo==='urgente')      show = row.dataset.prioridade === 'urgente';
     else if(tipo==='semana')  show = ['HOJE','ESTA SEMANA','VENCIDOS'].includes(grupo);
     else if(tipo==='mes')     show = ['HOJE','ESTA SEMANA','ESTE MÊS','PRÓXIMO MÊS','VENCIDOS'].includes(grupo);
+    else if(tipo==='prazos')  show = tipoCat === 'prazo' && grupo !== 'CONCLUÍDAS';
+    else if(tipo==='tarefas') show = tipoCat === 'tarefa' && grupo !== 'CONCLUÍDAS';
     row.style.display = show ? '' : 'none';
   });
 

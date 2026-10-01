@@ -332,26 +332,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
       <button type="button" class="login-btn" onclick="doLogin()">Entrar no CRM</button>
     </div>
     <div class="login-users">
-      <p>Acessos de demonstração</p>
+      <p>Acesso rápido</p>
       <div class="demo-users">
         <div class="demo-user" onclick="loginAs('Gustavo Rafael','GR','#2563EB','admin')">
           <div class="demo-user-info">
             <div class="av" style="background:#2563EB">GR</div>
             <div><span>Gustavo Rafael</span><br/><span class="role">Administrador</span></div>
-          </div>
-          <span style="font-size:0.72rem;color:var(--text-muted)">→</span>
-        </div>
-        <div class="demo-user" onclick="loginAs('Ana Lima','AL','#059669','advogado')">
-          <div class="demo-user-info">
-            <div class="av" style="background:#059669">AL</div>
-            <div><span>Ana Lima</span><br/><span class="role">Advogada</span></div>
-          </div>
-          <span style="font-size:0.72rem;color:var(--text-muted)">→</span>
-        </div>
-        <div class="demo-user" onclick="loginAs('Bruno Costa','BC','#7C3AED','estagiario')">
-          <div class="demo-user-info">
-            <div class="av" style="background:#7C3AED">BC</div>
-            <div><span>Bruno Costa</span><br/><span class="role">Estagiário</span></div>
           </div>
           <span style="font-size:0.72rem;color:var(--text-muted)">→</span>
         </div>
@@ -539,8 +525,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
           <div id="drop-pessoa" class="cl-drop" style="display:none;left:100px">
             <div class="cl-drop-title">Responsável</div>
             <label class="cl-drop-item"><input type="checkbox" checked onchange="aplicarFiltros()"> Gustavo</label>
-            <label class="cl-drop-item"><input type="checkbox" checked onchange="aplicarFiltros()"> Ana Lima</label>
-            <label class="cl-drop-item"><input type="checkbox" checked onchange="aplicarFiltros()"> Bruno</label>
           </div>
           <div id="drop-ordenar" class="cl-drop" style="display:none;left:190px">
             <div class="cl-drop-title">Ordenar por</div>
@@ -937,8 +921,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
       <div class="fg"><label>Responsável</label>
         <select id="at-responsavel">
           <option>Gustavo Rafael</option>
-          <option>Ana Lima</option>
-          <option>Bruno Costa</option>
         </select>
       </div>
       <div class="fg"><label>Observações</label><textarea id="at-obs" rows="3" placeholder="Resumo do atendimento, pendências, próximos passos..."></textarea></div>
@@ -976,7 +958,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
           <select id="m-origem"><option value="">Selecionar...</option><option>Tráfego Pago</option><option>Indicação</option><option>Social Media</option><option>Site Orgânico</option><option>WhatsApp</option></select>
         </div>
         <div class="fg"><label>Responsável</label>
-          <select id="m-resp"><option>Gustavo Rafael</option><option>Ana Lima</option><option>Bruno Costa</option></select>
+          <select id="m-resp"><option>Gustavo Rafael</option></select>
         </div>
         <div class="fg"><label>Valor Estimado (R$)</label><input id="m-valor" type="text" placeholder="Ex: 15.000"/></div>
         <div class="fg"><label>Tipo de Honorário</label>
@@ -1026,7 +1008,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
           <select id="cl-status"><option>Ativo</option><option>Em andamento</option><option>ACELERA</option><option>Encerrado</option></select>
         </div>
         <div class="fg"><label>Responsável</label>
-          <select id="cl-resp"><option>Gustavo Rafael</option><option>Ana Lima</option><option>Bruno Costa</option></select>
+          <select id="cl-resp"><option>Gustavo Rafael</option></select>
         </div>
         <div class="fg"><label>Tipo de Honorário</label>
           <select id="cl-honorario"><option value="">Selecionar...</option><option>Fixo</option><option>Mensalidade</option><option>Êxito</option><option>Misto</option></select>
@@ -1151,7 +1133,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
           <select id="tar-prioridade"><option value="urgente">🔥 Urgente</option><option value="alta">⚠ Alta</option><option value="media">📌 Média</option><option value="baixa">📎 Baixa</option></select>
         </div>
         <div class="fg"><label>Responsável</label>
-          <select id="tar-resp"><option>Gustavo Rafael</option><option>Ana Lima</option><option>Bruno Costa</option></select>
+          <select id="tar-resp"><option>Gustavo Rafael</option></select>
         </div>
         <div class="fg"><label>Status</label>
           <select id="tar-status"><option>Pendente</option><option>Em andamento</option><option>Concluído</option><option>Cancelado</option></select>
@@ -1336,8 +1318,6 @@ let _loginRole = '';
 
 const USUARIOS_CRM = [
   {nome:'Gustavo Rafael', iniciais:'GR', cor:'#2563EB', role:'admin'},
-  {nome:'Ana Lima',       iniciais:'AL', cor:'#059669', role:'advogado'},
-  {nome:'Bruno Costa',    iniciais:'BC', cor:'#7C3AED', role:'estagiario'},
 ];
 
 function enterApp(user){

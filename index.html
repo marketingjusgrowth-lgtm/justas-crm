@@ -715,6 +715,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
                 <th>Fase</th>
                 <th>Próximo Prazo</th>
                 <th>Ação Requerida</th>
+                <th>Momento Atual</th>
                 <th>E-proc</th>
                 <th>Responsável</th>
                 <th>Status</th>
@@ -1074,6 +1075,22 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overf
           <select id="pm-status"><option>Em andamento</option><option>Pendente</option><option>Concluído</option><option>Suspenso</option></select>
         </div>
         <div class="fg"><label>Ação Requerida</label><input id="pm-acao" type="text" placeholder="Ex: Protocolar contestação..."/></div>
+        <div class="fg"><label>Momento Atual</label>
+          <select id="pm-momento">
+            <option value="">— Selecionar —</option>
+            <option>Prazo contestação</option>
+            <option>Prazo réplica</option>
+            <option>Aguardando desp/dec</option>
+            <option>Aguardando sentença</option>
+            <option>Prazo para recurso</option>
+            <option>Aguardando contrarrazões</option>
+            <option>Suspenso</option>
+            <option>Extinto</option>
+            <option>Baixado</option>
+            <option>Aguardando trânsito</option>
+          </select>
+        </div>
+        <div class="fg"><label>Data do Momento</label><input id="pm-data-momento" type="date"/></div>
         <div class="fg form-full"><label>Responsáveis</label>
           <div id="pm-resp-list" style="display:flex;flex-wrap:wrap;gap:10px;padding:10px;border:1px solid var(--border);border-radius:8px;background:#fff;min-height:42px"></div>
         </div>
@@ -2058,6 +2075,10 @@ async function carregarProcessos() {
       <td><div class="cell"><span style="padding:2px 8px;border-radius:5px;font-size:0.75rem;background:#DBEAFE;color:#1D4ED8">${p.fase||'—'}</span></div></td>
       <td><div class="cell">${p.polo ? `<span style="padding:2px 8px;border-radius:5px;font-size:0.73rem;font-weight:600;background:${p.polo==='Réu'||p.polo==='Requerido'||p.polo==='Executado'?'#FEE2E2':'#D1FAE5'};color:${p.polo==='Réu'||p.polo==='Requerido'||p.polo==='Executado'?'#DC2626':'#065F46'}">${p.polo}</span>` : '—'}</div></td>
       <td><div class="cell cell-muted" style="font-size:0.77rem">${p.acao_requerida||'—'}</div></td>
+      <td><div class="cell" style="flex-direction:column;align-items:flex-start;gap:2px">
+        ${p.momento_atual ? `<span style="font-size:0.76rem;font-weight:600;color:#0F172A">${p.momento_atual}</span>` : '<span style="color:#94A3B8;font-size:0.75rem">—</span>'}
+        ${p.data_momento ? `<span style="font-size:0.68rem;color:#64748B">${p.data_momento.split('-').reverse().join('/')}</span>` : ''}
+      </div></td>
       <td><div class="cell">${p.origem==='datajud'?'<span style="background:#2563EB;color:#fff;padding:2px 7px;border-radius:4px;font-size:0.68rem;font-weight:600">✓ DataJud</span>':'—'}</div></td>
       <td><div class="cell" style="gap:0;padding-left:8px">${resps.length ? respsHtml : '—'} ${visivelTag}</div></td>
       <td><div class="cell"><span style="padding:3px 10px;border-radius:5px;font-size:0.78rem;background:#DBEAFE;color:#1D4ED8">${p.status||'—'}</span></div></td>
@@ -2071,14 +2092,11 @@ function clientesView(view, btn){
   document.querySelectorAll('.view-toggle .view-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   const tbl = document.getElementById('clientes-table');
-  const groups = tbl.querySelectorAll('tr:has(.group-header)');
-  if(view==='tabela'){
-    groups.forEach(r=>r.style.display='none');
-  } else {
-    groups.forEach(r=>r.style.display='');
-    // restore any collapsed rows
-    tbl.querySelectorAll('tbody tr').forEach(r=>{ if(!r.dataset.collapsed) r.style.display=''; });
-  }
+  tbl.querySelectorAll('tbody tr').forEach(r=>{
+    if(r.querySelector('.group-header')){ r.style.display = view==='tabela' ? 'none' : ''; return; }
+    if(r.querySelector('.add-row')){ r.style.display = view==='tabela' ? 'none' : ''; return; }
+    r.style.display = ''; // always show data rows in both views
+  });
 }
 
 // ─── CLIENTES: DROPDOWN TOGGLE ───
@@ -2581,15 +2599,18 @@ async function carregarDashboard(){
   const prazos = resPrazos.data || [];
   const pendentes = prazos.filter(p => p.status !== 'Concluído');
   const TIPOS_PRAZO = ['Prazo Processual','Audiência','Protocolo','Perícia'];
-  const nPrazosProc = pendentes.filter(p => TIPOS_PRAZO.includes(p.tipo)).length;
-  const nTarefas    = pendentes.filter(p => !TIPOS_PRAZO.includes(p.tipo)).length;
+  const prazosProc  = pendentes.filter(p => TIPOS_PRAZO.includes(p.tipo));
+  const tarefasOnly = pendentes.filter(p => !TIPOS_PRAZO.includes(p.tipo));
+  const nPrazosProc = prazosProc.length;
+  const nTarefas    = tarefasOnly.length;
 
   const _diff = (p) => p.data_prazo ? Math.floor((new Date(p.data_prazo+'T12:00:00')-hoje)/(1000*60*60*24)) : null;
 
-  const vencidos   = pendentes.filter(p=>{ const d=_diff(p); return d!==null && d<0; });
-  const hoje_list  = pendentes.filter(p=>_diff(p)===0);
-  const amanha     = pendentes.filter(p=>_diff(p)===1);
-  const semana     = pendentes.filter(p=>{ const d=_diff(p); return d!==null && d>1 && d<7; });
+  // Prazos críticos — apenas processuais
+  const vencidos   = prazosProc.filter(p=>{ const d=_diff(p); return d!==null && d<0; });
+  const hoje_list  = prazosProc.filter(p=>_diff(p)===0);
+  const amanha     = prazosProc.filter(p=>_diff(p)===1);
+  const semana     = prazosProc.filter(p=>{ const d=_diff(p); return d!==null && d>1 && d<7; });
   const criticos   = [...vencidos, ...hoje_list, ...amanha];
 
   // Sidebar badges
@@ -2656,10 +2677,10 @@ async function carregarDashboard(){
     lista.innerHTML = html || '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:0.85rem">Nenhum prazo crítico.</div>';
   }
 
-  // Barras de prioridade
+  // Barras de prioridade — apenas tarefas (não processuais)
   const contagem = {urgente:0,alta:0,media:0,baixa:0};
-  pendentes.forEach(p=>{ if(contagem[p.prioridade]!==undefined) contagem[p.prioridade]++; else contagem.media++; });
-  const total = pendentes.length || 1;
+  tarefasOnly.forEach(p=>{ if(contagem[p.prioridade]!==undefined) contagem[p.prioridade]++; else contagem.media++; });
+  const total = tarefasOnly.length || 1;
   ['urgente','alta','media','baixa'].forEach(k=>{
     document.getElementById(`dash-prio-${k}`).textContent = contagem[k];
     document.getElementById(`dash-bar-${k}`).style.width = Math.round(contagem[k]/total*100)+'%';
@@ -2924,12 +2945,14 @@ async function abrirModalProcesso(id){
       setSelect('pm-fase', data.fase||'Conhecimento');
       setSelect('pm-status', data.status||'Em andamento');
       setSelect('pm-polo', data.polo||'Autor');
+      setSelect('pm-momento', data.momento_atual||'');
+      document.getElementById('pm-data-momento').value = data.data_momento||'';
       _renderRespCheckboxes(data.responsaveis||[]);
       carregarHistoricoProcesso(id);
     }
   } else {
-    ['pm-numero','pm-cliente','pm-tribunal','pm-acao','pm-obs'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
-    ['pm-area','pm-fase','pm-status','pm-polo'].forEach(i=>{const el=document.getElementById(i);if(el)el.selectedIndex=0;});
+    ['pm-numero','pm-cliente','pm-tribunal','pm-acao','pm-obs','pm-data-momento'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+    ['pm-area','pm-fase','pm-status','pm-polo','pm-momento'].forEach(i=>{const el=document.getElementById(i);if(el)el.selectedIndex=0;});
     document.getElementById('pm-visivel-todos').checked = false;
     _renderRespCheckboxes([_loginNome]);
   }
@@ -2955,6 +2978,8 @@ async function salvarProcesso(){
     fase:           document.getElementById('pm-fase').value,
     status:         document.getElementById('pm-status').value,
     acao_requerida: document.getElementById('pm-acao').value.trim()||null,
+    momento_atual:  document.getElementById('pm-momento').value||null,
+    data_momento:   document.getElementById('pm-data-momento').value||null,
     observacoes:    document.getElementById('pm-obs').value.trim()||null,
     responsaveis:   responsaveis,
     visivel_todos:  document.getElementById('pm-visivel-todos').checked,
